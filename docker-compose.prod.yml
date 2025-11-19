@@ -16,8 +16,8 @@ services:
         USERNAME: ${USERNAME:-appuser}
         GROUPNAME: ${GROUPNAME:-appgroup}
     # dockerコンテナ起動時のデフォルトコマンド設定
+    # RDS MySQLはコンソール操作で常に起動しているため、wait-for-it.shは本番環境では削除（また、KMSからMySQL_HOSTの読み込みが難しいため。）
     command: >
-      wait-for-it.sh ${MYSQL_HOST}:3306 --
       sh -c "
       python manage.py migrate &&
       python manage.py collectstatic --noinput &&
