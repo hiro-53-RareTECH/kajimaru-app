@@ -72,6 +72,11 @@
   max-height: 80%; 
 }
 
+.area ul li {
+  font-size: 0.9rem;
+  color: var(--dashboard-list); 
+  margin-top: 0.2rem;
+}
 .page-title {
   margin-bottom: 1rem;
 }
@@ -81,18 +86,19 @@
   aspect-ratio: 1 / 1;
 }
 
-.today_mylist_area{
+.mylist_area{
     margin-top: 1rem;
     min-height: auto;
     flex: 1;
     display: flex;
     flex-direction: column;
-    box-shadow: 0px 10px 10px -5px rgba(0,0,0,0.16);
+    box-shadow: 0px 10px 10px -5px rgba(0,0,0,0.10);
 }
 
 
 .today_mylist {
   background-color: var(--bg-surface);
+  box-shadow: 0px 10px 10px -5px rgba(0,0,0,0.10);
 }
 
 .today_mylist p {
@@ -101,7 +107,25 @@
 
 .today_mylist ul li {
   text-indent: 1em;
-  /* gap: 3rem; */
+  font-size: 0.9rem;
+  color: var(--dashboard-list); 
+  margin-top: 0.2rem;
+}
+
+.unfinished_yesterday_list {
+  margin-top: 1rem;
+  background-color: var(--bg-surface);
+}
+
+.unfinished_yesterday_list p {
+  text-align: center;
+}
+
+.unfinished_yesterday_list ul li {
+  text-indent: 1em;
+  font-size: 0.9rem;
+  color: var(--dashboard-list); 
+  margin-top: 0.2rem;
 }
 
 .license {
@@ -110,4 +134,68 @@
   text-align: center;
   font-size: 0.6rem;
   opacity: 0.6;
+}
+
+.today_houseworklist_detail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.today_houseworklist_detail li {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.today_item {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 0.3rem 0.5rem;
+  align-items: center;
+}
+
+.today_item .housework_label {
+  text-align: left;
+  /* font-weight: 500; */
+}
+
+.today_item .housework_value {
+  text-align: left;
+}
+
+.today_houseworklist_detail .today_item .housework_label:nth-of-type(3) {
+  margin-left: 1rem;
+}
+
+.today_houseworklist_detail .housework_value {
+  font-weight: bold;
+}
+
+.today_houseworklist_detail .today_item:nth-child(even) {
+  background-color: var(--todaylist-even);
+  border-radius: 8px;
+}
+
+.today_houseworklist_detail .today_item:nth-child(odd) {
+  background-color: var(--todaylist-odd);
+  border-radius: 8px;
+}
+
+.today_title,
+.today_list {
+  display: inline-block;
+  vertical-align: middle;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0;
+}
+
+.task-item.completed .task-name {
+  text-decoration: line-through;
+  opacity: .55;
+}
+
+#tasksTodayList {
+  list-style: none;
 }
