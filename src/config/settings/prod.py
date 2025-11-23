@@ -8,8 +8,7 @@ CSRF_TRUSTED_ORIGINS = ['https://kajimaru.com']
 # 本番環境での静的ファイルの出力先
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-
-# 以下はセキュリティ強化の設定。現状は仮置き。
+# 以下はセキュリティ強化の設定
 # HTTPをHTTPSに自動的にリダイレクトする。
 SECURE_SSL_REDIRECT = True
 # クライアントからのリクエストヘッダーがHTTPSか否かを判定

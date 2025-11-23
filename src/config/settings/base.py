@@ -37,8 +37,6 @@ SECRET_KEY = get_ssm(os.getenv('DJANGO_SECRET_KEY'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 「DEBUG」と「ALLOWED_HOSTS」は「開発」と「本番」で分けるため、dev.py, prod.pyに記述（base.pyからはコメントアウト）
-# DEBUG = True
-
 # ALLOWED_HOSTS = []
 
 # Application definition
@@ -55,7 +53,8 @@ INSTALLED_APPS = [
     'apps.dashboard',
     'apps.rotation',
     'apps.shopping',
-    'apps.stocks'
+    'apps.stocks',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -138,7 +137,23 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
+# 開発環境のSTATIC_URL
+# STATIC_URL = '/static/'
+
+# AWS S3との紐づけ
+AWS_STORAGE_BUCKET_NAME = "kajimaru.com"
+AWS_S3_REGION_NAME = "ap-northeast-1"
+AWS_S3_CUSTOM_DOMAIN = "d2elnf4dyx4v7e.cloudfront.net"
+
+# ストレージをS3に指定
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+}
+
+# 本番環境のSTATIC_URL
+STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
 STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 
 # Default primary key field type
