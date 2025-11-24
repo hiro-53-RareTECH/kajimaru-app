@@ -13,8 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-import json
-import boto3
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # srcをBASE_DIRに設定
@@ -26,17 +24,14 @@ load_dotenv(BASE_DIR.parent / '.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# Parameter Store／KMSから機密情報の取得
-def get_ssm(name):
-    ssm = boto3.client('ssm', 'ap-northeast-1')
-    return ssm.get_parameter(Name=name, WithDecryption=True)['Parameter']['Value']
-
 # SECURITY WARNING: keep the secret key used in production secret!
-# 【本番用に修正】DjangoのSECRET_KEY
-SECRET_KEY = get_ssm(os.getenv('DJANGO_SECRET_KEY'))
+# Djangoの「SECRET_KEY」は「開発」と「本番」で分ける
+# SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # 「DEBUG」と「ALLOWED_HOSTS」は「開発」と「本番」で分けるため、dev.py, prod.pyに記述（base.pyからはコメントアウト）
+# DEBUG = True
+
 # ALLOWED_HOSTS = []
 
 # Application definition
@@ -54,7 +49,6 @@ INSTALLED_APPS = [
     'apps.rotation',
     'apps.shopping',
     'apps.stocks',
-    'storages',
 ]
 
 MIDDLEWARE = [
@@ -91,17 +85,17 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# 【本番用に修正】DBの機密情報
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': get_ssm(os.getenv('MYSQL_DATABASE')),
-        'USER': get_ssm(os.getenv('MYSQL_USER')),
-        'PASSWORD': get_ssm(os.getenv('MYSQL_PASSWORD')),
-        'HOST': get_ssm(os.getenv('MYSQL_HOST')),
-        'PORT': '3306'
-    }
-}
+# Databaseの設定は「開発」と「本番」で分ける
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': os.getenv('MYSQL_DATABASE'),
+#         'USER': os.getenv('MYSQL_USER'),
+#         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
+#         'HOST': os.getenv('MYSQL_HOST'),
+#         'PORT': '3306'
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -137,26 +131,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-# 開発環境のSTATIC_URL
+# 静的ファイルの設定は「開発」と「本番」で分ける
 # STATIC_URL = '/static/'
-
-# AWS S3との紐づけ
-AWS_STORAGE_BUCKET_NAME = "kajimaru.com"
-AWS_S3_REGION_NAME = "ap-northeast-1"
-AWS_S3_CUSTOM_DOMAIN = "d2elnf4dyx4v7e.cloudfront.net"
-
-# ストレージをS3に指定
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
-    },
-}
-
-# 本番環境のSTATIC_URL
-STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
-STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
+# STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
