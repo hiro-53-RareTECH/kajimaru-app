@@ -66,6 +66,29 @@ document.addEventListener('DOMContentLoaded', function () {
   calendarTitle.textContent = `${month}月：週ローテ表`;
 
   // ③データベースに登録されている家事と担当者を取得、行を作って入れる
+  const tbody = document.getElementById('week_rotation');
+  // もらったデータの中から１家事分ずつ取り出す
+  もらったデータを入れた変数.forEach(kaji => {
+    // tr（横1行）を作成
+    const tr = document.createElement('tr');
+    // 左端の「家事名」セルを作成
+    const th = document.createElement('th');
+    // thタグにrowを見るように指定（行を指している）
+    th.scope = 'row';
+    // kajiの中の家事名データを取り出して、thタグに表示
+    th.textContent = kaji.データ名;
+    // thをtrの子要素として中に入れている
+    tr.appendChild(th);
 
+    // 月〜日の担当者セルを順に追加
+    kaji.データ名.forEach(name => {
+      const td = document.createElement('td');
+      // nameがなければ空欄
+      td.textContent = name || '';
+      tr.appendChild(td);
+    });
+    // tbody に追加
+    tbody.appendChild(tr);
+  });
 
 });
