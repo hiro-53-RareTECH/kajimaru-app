@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'apps.dashboard',
     'apps.rotation',
     'apps.shopping',
-    'apps.stocks'
+    'apps.stocks',
+    'apps.maintenance',
 ]
 
 MIDDLEWARE = [
@@ -136,3 +137,5 @@ STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MATTERMOST_WEBHOOK_URL = "https://chat.raretech.site/hooks/y9maqimxapdybrg65p3hu8ix7o"

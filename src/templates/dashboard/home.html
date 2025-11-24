@@ -155,6 +155,70 @@
       //   }
       // }
     });
+    //グラフ更新用
+    window.updateFamilyChart = function(rate) {
+      const c = Number(rate) || 0;
+      const ic = 100 - c;
+      myDoughnutChart.data.datasets[0].data = [c, ic];
+      myDoughnutChart.update();
+    };
+    // CSRFトークン取得関数
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const csrftoken = getCookie('csrftoken');
+
+      document.querySelectorAll('#tasksTodayList .task-item .task-checkbox').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+          const li = this.closest('.task-item');
+          const taskId = li.dataset.taskId;
+          const url = `tasks/${taskId}/toggle/`;
+          const prevChecked = checkbox.checked;
+
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({})
+          })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (!data.success) {
+              checkbox.checked = !prevChecked;
+              return;
+            }
+
+            //サーバが持っている状態に合わせる
+            checkbox.checked = data.is_completed;
+
+              if (data.is_completed) {
+                li.classList.add('completed');
+              } else {
+                li.classList.remove('completed');
+              }
+              // 家族の達成率を更新
+              window.updateFamilyChart(data.completion_rate_family);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            checkbox.checked = !checkbox.checked;
+          });
+        });
+      });
+    });
 </script>
 <!-- <script src="{% static 'js/graph.js' %}"></script> -->
 <script src="{% static 'js/today_mylist.js' %}"></script>
