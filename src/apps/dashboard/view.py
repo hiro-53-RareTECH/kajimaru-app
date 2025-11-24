@@ -3,11 +3,20 @@ from django.views.generic import TemplateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.shortcuts import redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponseForbidden
+from django.db import transaction
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from .models import Task, Maintenance, TaskList
 from apps.user.models import Users
 from apps.rotation.services import create_week_tasks, create_maintenance_tasks, reset_future_tasks
 
+def get_login_user(request):
+    active_id = request.session.get("active_user_id")
+    if active_id:
+        return Users.objects.select_related("household").filter(id=active_id).first()
+    return Users.objects.select_related("household").filter(user=request.user).first()
 class DashboardView(LoginRequiredMixin,TemplateView):
     template_name = "dashboard/home.html"
     login_url = "/login/"
@@ -26,8 +35,13 @@ class DashboardView(LoginRequiredMixin,TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         login_user = self.get_login_user()
+        family = self.get_household(login_user)
         today = timezone.localdate()
         yesterday = today - timedelta(days=1)
+
+        #代役募集中のタスク
+        substitute_requests = Task.objects.filter(user__in=family,is_busy=True,is_completed=False,).exclude(user=login_user).select_related("user","task_list").order_by("daily")
+        context["substitute_requests"] = substitute_requests
 
         #今日の家事(個人)
         tasks_today = Task.objects.filter(daily__date=today, user=login_user).select_related("user","task_list","maintenance")
@@ -74,6 +88,14 @@ class DashboardView(LoginRequiredMixin,TemplateView):
 
         can_run_week_tasks = self.request.user.is_staff
 
+        #代役タスク
+        pending_sub_tasks = Task.objects.filter(
+            daily__date=today,
+            user__in=family,
+            is_busy=True,
+            is_completed=False,
+        ).select_related("user","task_list","maintenance")
+
         #フロントに渡す
         context.update({
             "tasks_today": tasks_today,
@@ -87,6 +109,10 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             "maintenance_today_family": maintenance_today_family,
             "chores_weekday_by_frequency": chores_weekday_by_frequency,
             "can_run_week_tasks": can_run_week_tasks,
+
+            #代役
+            "login_user": login_user,
+            "pending_sub_tasks": pending_sub_tasks,
         })
         return context
 
@@ -126,3 +152,59 @@ class ToggleTaskDoneView(LoginRequiredMixin, View):
             "done_count_family": done_count_family,
             "total_count_family": total_count_family,
         })
+@login_required
+@require_POST
+def request_substitute(request, task_id):
+    task = get_object_or_404(Task, pk=task_id)
+    login_user = get_login_user(request)
+    #完了済みなら依頼不可
+    if task.is_completed:
+        return HttpResponseForbidden("完了済みのタスクには代役依頼できません")
+    #すでに代役依頼中なら不可
+    if task.is_busy:
+        return redirect("dashboard:dashboard")
+
+    task.is_busy = True
+    task.save(update_fields=["is_busy"])
+    return redirect("dashboard:dashboard")
+
+@login_required
+@require_POST
+def accept_substitute(request, task_id):
+    approver = get_login_user(request)
+    if not approver or not approver.household_id:
+        return HttpResponseForbidden("世帯情報がありません")
+    with transaction.atomic():
+        task = (
+            Task.objects
+            .select_for_update()
+            .select_related("user")
+            .get(pk=task_id)
+        )
+        if not task.is_busy:
+            return redirect("dashboard:dashboard")
+
+        if task.user is None:
+            return HttpResponseForbidden("担当者情報がありません")
+        if task.user.household_id != approver.household_id:
+            return HttpResponseForbidden("権限がありません")
+        original_user = task.user
+        task.substitute = original_user.display_name
+        task.user = approver
+        task.is_busy = False
+        task.save(update_fields=["user", "substitute", "is_busy"])
+    return redirect("dashboard:dashboard")
+
+@login_required
+@require_POST
+def toggle_busy(request):
+    login_user = get_login_user(request)
+    if not login_user:
+        return HttpResponseForbidden("ログインユーザーが取得できません")
+
+    if login_user.status == "busy":
+        login_user.status = "active"
+    else:
+        login_user.status = "busy"
+    login_user.save(update_fields=["status"])
+    return redirect("dashboard:dashboard")
