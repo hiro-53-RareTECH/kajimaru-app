@@ -113,8 +113,13 @@
   color: var(--dashboard-list); 
   font-weight: 600;
   margin-top: 0.2rem;
-  display: inline-block;
+  display: block;
+}
+
+.today_mylist .task-name {
+  display: inline-block;                         
   border-bottom: 1px solid var(--tasklist-underline);
+  padding-bottom: 0.1rem;                        
 }
 
 .unfinished_yesterday_list {
