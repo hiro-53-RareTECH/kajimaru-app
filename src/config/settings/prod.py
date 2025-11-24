@@ -30,23 +30,22 @@ DATABASES = {
 }
 
 # AWS S3との紐づけ
-#AWS_STORAGE_BUCKET_NAME = 'kajimaru.com'
-#AWS_S3_REGION_NAME = 'ap-northeast-1'
-#AWS_S3_CUSTOM_DOMAIN = 'd2elnf4dyx4v7e.cloudfront.net'
+AWS_STORAGE_BUCKET_NAME = 'kajimaru.com'
+AWS_S3_REGION_NAME = 'ap-northeast-1'
+AWS_S3_CUSTOM_DOMAIN = 'd2elnf4dyx4v7e.cloudfront.net'
 
 # ストレージをS3に指定
-#STORAGES = {
-#    'staticfiles': {
-#        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
-#    },
-#}
+STORAGES = {
+    'staticfiles': {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+}
 
 # 本番環境での静的ファイルの出力先
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # 本番環境のSTATIC_URL
-#STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-STATIC_URL = '/static/'
+STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 
 # 以下はセキュリティ強化の設定
