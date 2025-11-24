@@ -1,8 +1,9 @@
 from datetime import timedelta
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
+from django.http import JsonResponse
 from .models import Task, Maintenance, TaskList
 from apps.user.models import Users
 from apps.rotation.services import create_week_tasks, create_maintenance_tasks, reset_future_tasks
@@ -96,3 +97,32 @@ class DashboardView(LoginRequiredMixin,TemplateView):
         create_maintenance_tasks(run_date=today)
         return redirect("dashboard:dashboard")
 
+class ToggleTaskDoneView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        task = get_object_or_404(Task, pk=pk)
+        task.is_completed = not task.is_completed
+        task.save(update_fields=["is_completed"])
+        today = timezone.localdate()
+        active_id = request.session.get("active_user_id")
+        if active_id:
+            login_user = Users.objects.select_related("household").filter(id=active_id).first()
+        else:
+            login_user = Users.objects.select_related("household").filter(user=request.user).first()
+
+        if not login_user or not login_user.household:
+            family = Users.objects.none()
+        else:
+            family = Users.objects.filter(household=login_user.household)
+
+        tasks_today_family = Task.objects.filter(daily__date=today, user__in=family)
+        total_count_family = tasks_today_family.count()
+        done_count_family = tasks_today_family.filter(is_completed=True).count()
+        completion_rate_family = round(done_count_family * 100 / total_count_family) if total_count_family else 0
+
+        return JsonResponse({
+            "success": True,
+            "is_completed": task.is_completed,
+            "completion_rate_family": completion_rate_family,
+            "done_count_family": done_count_family,
+            "total_count_family": total_count_family,
+        })
