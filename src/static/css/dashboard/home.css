@@ -106,10 +106,13 @@
 }
 
 .today_mylist ul li {
-  text-indent: 1em;
+  margin-left: 1em;
   font-size: 0.9rem;
   color: var(--dashboard-list); 
+  font-weight: 600;
   margin-top: 0.2rem;
+  display: inline-block;
+  border-bottom: 1px solid var(--tasklist-underline);
 }
 
 .unfinished_yesterday_list {
@@ -122,10 +125,15 @@
 }
 
 .unfinished_yesterday_list ul li {
-  text-indent: 1em;
+  list-style: none;
+  margin-left: 1em;
   font-size: 0.9rem;
-  color: var(--dashboard-list); 
+  color: var(--btn-danger-solid);
+  font-weight: 600; 
   margin-top: 0.2rem;
+  display: block;
+  width: fit-content;
+  border-bottom: 1px solid var(--tasklist-underline); 
 }
 
 .license {
