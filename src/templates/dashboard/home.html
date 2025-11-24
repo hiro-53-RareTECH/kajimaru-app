@@ -23,9 +23,15 @@
 
 {% block page_title %}ホーム{% endblock %}
 {% block content %}
-<form method="post">
+<form class="week-create-form" method="post">
   {% csrf_token %}
-  <button type="submit">１週間分の家事タスクを作成</button>
+  <button type="submit" class="week_list_create_btn" aria-label="１週間分の家事タスクを作成">
+    <img 
+      src="{% static 'img/kajimaru_mikan.svg' %}" 
+      alt="" 
+      class="icon-mikan"
+    >
+  </button>
 </form>
 <div class="dashboard_scroll_container">
   <section class="area">

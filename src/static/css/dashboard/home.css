@@ -5,6 +5,8 @@
 
 .page-section {
     flex: 1;
+    /* かじまるみかん用 */
+    position: relative; 
 }
 
 .dashboard_scroll_container {
@@ -207,3 +209,22 @@
 #tasksTodayList {
   list-style: none;
 }
+
+.week_list_create_btn .icon-mikan{
+  width: 2rem;
+  height: 2rem;
+}
+
+.week_list_create_btn {
+  background: transparent;  
+  border: none;
+  /* かじまるみかん用 */
+  position: absolute;
+  top: 2.4rem; 
+  right: 6rem; 
+}
+
+.week-create-form {
+  margin: 0;
+}
+
