@@ -22,7 +22,7 @@ urlpatterns = [
     path('', include('apps.user.urls')),
     path('dashboard/', include('apps.dashboard.urls', namespace='dashboard')),
     path('rotation/', include('apps.rotation.urls')),
-    path('shopping/', include(('apps.shopping.urls', 'shpping'), namespace='shopping')),
+    path('shopping/', include(('apps.shopping.urls', 'shopping'), namespace='shopping')),
     path('stocks', include('apps.stocks.urls', namespace='stocks')),
-    
+    path('maintenance/', include(('apps.maintenance.urls', 'maintenance'), namespace='maintenance')),
 ]
