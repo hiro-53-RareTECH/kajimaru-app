@@ -25,4 +25,5 @@ urlpatterns = [
     path('shopping/', include(('apps.shopping.urls', 'shopping'), namespace='shopping')),
     path('stocks', include('apps.stocks.urls', namespace='stocks')),
     path('maintenance/', include(('apps.maintenance.urls', 'maintenance'), namespace='maintenance')),
+    path('api/weather/', include(('apps.weather.urls', 'weather'), namespace='weather')),
 ]
