@@ -46,7 +46,7 @@ def roulette_choice(weights: dict[Users, float]) -> Users | None:
 
 #担当者決定
 def choose_homemaker_for_tasklist(task_list: TaskList) -> Users | None:
-    candidates = list(task_list.homemakers.all())       #DB負担軽減のためのリスト化
+    candidates = list(task_list.homemakers.exclude(status="busy"))       #DB負担軽減のためのリスト化
     if not candidates:      #候補者がいなければNoneを返す
         return None
     scores: dict[Users, int] = {}
@@ -117,7 +117,7 @@ def calc_user_score_for_maintenance(maintenance: Maintenance, user: Users) -> in
 
 #Maintenance担当者決定
 def choose_homemaker_for_maintenance(maintenance: Maintenance) -> Users | None:
-    candidates = list(maintenance.homemakers.all())
+    candidates = list(maintenance.homemakers.exclude(status="busy"))
     if not candidates:
         return None
     scores: dict[Users, int] = {}
