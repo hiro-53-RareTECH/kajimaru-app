@@ -57,12 +57,12 @@ class JoinCodeForm(forms.Form):
 
 class PinSetForm(forms.Form):
     pin1 = forms.CharField(
-        label="PINコード（4桁）",
+        label="PIN（4桁数字）",
         min_length=4, max_length=4,
         widget=forms.PasswordInput(attrs={"inputmode": "numeric", "autocomplete": "off"})
     )
     pin2 = forms.CharField(
-        label="PIN（確認）",
+        label="PIN（もう一度）",
         min_length=4, max_length=4,
         widget=forms.PasswordInput(attrs={"inputmode": "numeric", "autocomplete": "off"})
     )
