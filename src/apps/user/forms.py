@@ -44,15 +44,15 @@ class JoinCodeForm(forms.Form):
             'placehoder': '12345678',
         }),
         error_messages={
-            'min_length': '参加コードは8桁で入力してください。',
-            'max_length': '参加コードは8桁で入力してください。',
+            'min_length': '招待コードは8桁で入力してください。',
+            'max_length': '招待コードは8桁で入力してください。',
         },
     )
 
     def clean_code8(self):
         v = self.cleaned_data['code8']
         if not v.isdigit():
-            raise forms.ValidationError('参加コードは8桁の数字で入力してください。')
+            raise forms.ValidationError('招待コードは8桁の数字で入力してください。')
         return v
 
 class PinSetForm(forms.Form):
@@ -89,6 +89,11 @@ class PinVerifyForm(forms.Form):
         if not v.isdigit():
             raise forms.ValidationError('PINコードは４桁の数字で入力してください。')
         return v
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+
 
 class MemberForm(forms.ModelForm):
     display_name = forms.CharField(label='名前', max_length=50)
@@ -108,7 +113,7 @@ class MemberForm(forms.ModelForm):
 
 class AdminPinForm(forms.Form):
     pin = forms.CharField(
-        label='管理者PIN',
+        label='PIN（4桁）',
         min_length=4, max_length=4,
         widget=forms.PasswordInput(attrs={'inputmode': 'numeric', 'autocomplete': 'one-time-code'})
     )

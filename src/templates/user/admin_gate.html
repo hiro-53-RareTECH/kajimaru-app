@@ -20,7 +20,9 @@
 {% block content %}
   <form method="post" action="" class="admin-pin-form">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div class="pin-input">
+      {{ form.as_p }}
+    </div>
     <button class="btn-primary" type="submit">入室する</button>
     <div class="link_set">
       <a href="{% url 'profiles_list' %}" class="btn btn-secondary">プロフィール一覧へ</a>
