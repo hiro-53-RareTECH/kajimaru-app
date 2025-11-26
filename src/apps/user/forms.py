@@ -79,7 +79,7 @@ class PinSetForm(forms.Form):
 
 class PinVerifyForm(forms.Form):
     pin = forms.CharField(
-        label='PIN（4桁）',
+        label='PIN（4桁数字）',
         min_length=4, max_length=4,
         widget=forms.PasswordInput(attrs={'inputmode': 'numeric', 'autocomplete': 'off'})
     )
@@ -113,7 +113,7 @@ class MemberForm(forms.ModelForm):
 
 class AdminPinForm(forms.Form):
     pin = forms.CharField(
-        label='PIN（4桁）',
+        label='PIN（4桁数字）',
         min_length=4, max_length=4,
         widget=forms.PasswordInput(attrs={'inputmode': 'numeric', 'autocomplete': 'one-time-code'})
     )
