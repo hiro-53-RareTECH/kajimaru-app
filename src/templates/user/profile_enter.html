@@ -17,12 +17,15 @@
 
 {% block page_title %} ログイン {% endblock %}
 {% block content %}
-  <p class="pin_target">対象プロフィール：<strong>{{ member.display_name }}</strong></p>
-  <div class="caution_text">
-    <p>５回間違えるとロックがかかります。</p>
-  </div>
+  <!-- <p class="pin_target">対象プロフィール：<strong>{{ member.display_name }}</strong></p> -->
   <form method="post">{% csrf_token %}
-    {{ form.as_p }}
+    <div class="pin-input">
+      {{ form.as_p }}
+    </div>
+  <div class="caution_text">
+    <p>　５回間違えるとロックがかかります。</p>
+  </div>
+
     <button class="btn btn-primary" type="submit">ホームに入室する</button>
   </form>
   <div class="link_set">
