@@ -23,7 +23,9 @@
     <p>５回間違えるとロックがかかります。</p>
   </div>
   <form method="post">{% csrf_token %}
-    {{ form.as_p }}
+    <div class="pin-input">
+      {{ form.as_p }}
+    </div>
     <button class="btn-primary" type="submit">登録して入室する</button>
   </form>
   <div class="link_set">

@@ -58,6 +58,7 @@ form label {
   display: flex;
   flex-direction: column;
   row-gap: 0;
+  white-space: nowrap;
 }
 
 .caution_text p {
@@ -471,3 +472,30 @@ p.help_text {
   color: var(--dashboard-list);     
   padding-left: 1em;   /* 全体を1文字分右へ */
 }
+
+.pin-input input[type="password"]#id_pin {
+  text-align: center !important;
+  letter-spacing: .35em !important;
+  font-size: 1.6rem !important;
+  font-family: ui-monospace, Menlo, Consolas, monospace !important;
+  width: 16ch !important;
+}
+
+/* PINの行を横並びにして折り返し禁止 */
+.pin-input p{
+  display:flex;           
+  align-items:flex-start;
+  gap:.5rem;
+  margin:0;                
+}
+.pin-input p > label{
+  white-space:nowrap;       
+  margin:0;
+}
+.pin-input p > input{
+  width:10ch;              
+  text-align:center;
+  letter-spacing:.35em;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
