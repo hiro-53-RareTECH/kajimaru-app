@@ -1,17 +1,22 @@
 .stocklist_section {
   width: 100%;
-  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 70px - 72px - 5rem);  
+  padding-top: 1rem;
+  padding-bottom: 1.5rem;
 }
 
 .stock-list-area {
   width: 100%;
   display: flex;
   flex-direction: column;
-  max-height: 470px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   gap: 0.8rem;   
-  margin-top: 2rem;
-  padding-bottom: 2rem;
+  margin-top: 0.5rem;
 }
 
 .stock-item {
@@ -59,16 +64,16 @@
 }
 
 /* 上部ボタンの行 */
-.stocks-header{
+/* .stocks-header{
   display:flex;
   justify-content:flex-end;
   align-items:center;
   gap:12px;
   margin: 8px 12px 0;
-}
+} */
 
 /* ボタンの体裁（既存の .btn / .btn-primary があればそれでOK） */
-.stocks-header .btn{
+/* .stocks-header .btn{
   padding:.5rem .8rem;
   border:1px solid #ccc;
   border-radius:8px;
@@ -78,5 +83,42 @@
   background:#007aff;
   color:#fff;
   border-color:#007aff;
+} */
+
+
+.stock-del-form .btn-danger {
+  border: none;
+  font-size: 1.4rem;
+  padding: 0.3rem;
+  color: var(--btn-danger-solid);
 }
 
+.stock-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;  
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.stock-info-row .muted {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.stock-del-form {
+  margin-left: auto;
+  margin-top: 0.5rem;
+}
+
+hr {
+  margin: 0.3rem 0;  
+}
+
+.stocks-footer .btn{
+  margin-top: 0;
+}
+
+.stocks-footer form {
+  margin-top: 1rem;
+}

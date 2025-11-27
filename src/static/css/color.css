@@ -6,7 +6,7 @@
   --text: #111111;
   --text-sub: #ffffff;
   --primary: #FFAE00; 
-  --btn-danger-solid: #FF0000;
+  --btn-danger-solid: #c62828;
   --btn-primary: #FFAE00; 
   --btn-secondary-solid: #FFAE00;
   --btn-bg-secondary: #ffffff;
@@ -18,4 +18,5 @@
   --accent-color: #3CAE94;
   --todaylist-even: #fafafa;
   --todaylist-odd: #fdf7ef;
+  --tasklist-underline: #cccccc;
 }

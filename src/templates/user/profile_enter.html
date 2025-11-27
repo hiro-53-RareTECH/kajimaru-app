@@ -18,7 +18,7 @@
 {% block page_title %} ログイン {% endblock %}
 {% block content %}
   <!-- <p class="pin_target">対象プロフィール：<strong>{{ member.display_name }}</strong></p> -->
-  <form method="post">{% csrf_token %}
+  <form method="post" class="login-form">{% csrf_token %}
     <div class="pin-input">
       {{ form.as_p }}
     </div>

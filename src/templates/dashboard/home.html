@@ -12,9 +12,6 @@
   <link rel="stylesheet" href="{% static 'css/components/calendar.css' %}">
   <!-- chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes"></script> -->
-  <!-- FullCalendar -->
-  <!-- <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script> -->
 {% endblock %}
 
 {% block header %}
@@ -23,9 +20,15 @@
 
 {% block page_title %}ホーム{% endblock %}
 {% block content %}
-<form method="post">
+<form class="week-create-form" method="post">
   {% csrf_token %}
-  <button type="submit">１週間分の家事タスクを作成</button>
+  <button type="submit" class="week_list_create_btn" aria-label="１週間分の家事タスクを作成">
+    <img 
+      src="{% static 'img/kajimaru_mikan.svg' %}" 
+      alt="" 
+      class="icon-mikan"
+    >
+  </button>
 </form>
 <div class="dashboard_scroll_container">
   <section class="area">
@@ -49,39 +52,43 @@
       {% endfor %}
     </ul>
   </section>
-  <section class="area">
-    <p id="calendar" class="calendar_title"></p>
-    <!-- <div id="calendar" class="my-calendar"></div> -->
-    <table id="tbl" class="schedule_tbl">
-      <thead>
-        <tr>
-          <th rowspan="2">家事名</th>
-          <th>月</th>
-          <th>火</th>
-          <th>水</th>
-          <th>木</th>
-          <th>金</th>
-          <th>土</th>
-          <th>日</th>
-        </tr>
-        <tr>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-        </tr>
-      </thead>
-      <tbody id="week_rotation">
-      </tbody>
-    </table>
+  <section class="area week-rotation-area">
+    <p class="today_houseworklist_header week-rotation-header">
+      <span class="today_title">週ローテ担当表：</span>
+      <span id="calendar" class="today_list"></span> 
+    </p>
+    <div class="week-rotation-card">
+      <table id="tbl" class="schedule_tbl">
+        <thead>
+          <tr>
+            <th rowspan="2" class="col-task">家事名</th>
+            <th>月</th>
+            <th>火</th>
+            <th>水</th>
+            <th>木</th>
+            <th>金</th>
+            <th>土</th>
+            <th>日</th>
+          </tr>
+          <tr>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+          </tr>
+        </thead>
+        <tbody id="week_rotation">
+        </tbody>
+      </table>
+    </div>
   </section>
 </div>
 <article class="mylist_area">
   <div class="today_mylist">
-    <p>今日の自分の担当</p>
+    <p>今日の自分の担当家事</p>
     <ul id="tasksTodayList">
       {% for task in tasks_today %}
       <!-- もし完了済みなら「task_item」クラスにcompletedクラスを追加する -->
@@ -91,32 +98,63 @@
           data-task-id="{{ task.id }}"
           data-toggle-url="{% url 'dashboard:task_toggle' task.id %}"
         > 
-      <!-- 家事が完了しているならチェック状態（checked）になる -->
-          <input type="checkbox" class="task-checkbox" {% if task.is_completed %}checked{% endif %}>
-      <!-- 家事名を表示 -->
-          <span class="task-name">{{ task.task_list.task_name }}</span>
-        </li>
-        <!--代役表示-->
-        {% if task.substitute %}
-          <span class="task-substitute-note">
-            ({{ task.substitute }} の代役)
-          </span>
-        {% endif %}
-
-        <!-- 代役依頼ボタン -->
-        <div class="task-substitute-actions">
-          {% if not task.completed and not task.is_busy %}
-            <form action="{% url 'dashboard:request_substitute' task.id %}" method="post" class="substitute-request-form">
-              {% csrf_token %}
-              <button type="submit" class="btn-substitute-request">代役依頼</button>
-            </form>
-            {% elif task.is_busy %}
-            <span class="task-substitute-status">代役依頼中</span>
+          <div class="task-row">
+            <div class="task-main">
+              <!-- 家事が完了しているならチェック状態（checked）になる -->
+              <input type="checkbox" class="task-checkbox" {% if task.is_completed %}checked{% endif %}>
+              <!-- 家事名を表示 -->
+              <span class="task-name">{{ task.task_list.task_name }}</span>
+            </div>
+            <!-- 代役依頼ボタン -->
+            <div class="task-substitute-actions">
+              {% if not task.completed and not task.is_busy %}
+                <form action="{% url 'dashboard:request_substitute' task.id %}" method="post" class="substitute-request-form">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-substitute-request">代役依頼</button>
+                </form>
+              {% elif task.is_busy %}
+                <span class="task-substitute-status">代役依頼中</span>
+              {% endif %}
+            </div>
+          </div>
+          <!--代役表示-->
+          {% if task.substitute %}
+            <span class="task-substitute-note">
+              ({{ task.substitute }} の代役)
+            </span>
           {% endif %}
-        </div>
         </li>
       {% empty %}
       <li>まだ登録されていません。</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="substitute_pending_list">
+    <p>代役募集中の家事</p>
+    <ul>
+      {% for t in pending_sub_tasks %}
+      <li class="pending-item">
+        <div class="pending-row">
+          <div class="pending-main">
+            <span class="housework_label">家事名:</span>
+            <span class="housework_value">
+              {% if t.task_list %}
+                {{ t.task_list.task_name }}
+              {% else %}
+                {{ t.role }}
+              {% endif %}
+            </span>
+          </div>
+          <div class="pending-actions">
+            <form action="{% url 'dashboard:accept_substitute' t.id %}" method="post" class="substitute-accept-form">
+              {% csrf_token %}
+              <button type="submit" class="btn-substitute-accept">代役を引き受ける</button>
+            </form>
+          </div>
+        </div>
+      </li>
+      {% empty %}
+        <li>代役依頼の家事はありません。</li>
       {% endfor %}
     </ul>
   </div>
@@ -139,30 +177,6 @@
       </label>
     </form>
   </div>
-  <div class="substitute_pending_list">
-    <p>代役募集中の家事</p>
-    <ul>
-      {% for t in pending_sub_tasks %}
-      <li>
-        <span class="housework_label">家事名:</span>
-        <span class="housework_value">
-          {% if t.task_list %}
-            {{ t.task_list.task_name }}
-            {% else %}
-              {{ t.role }}
-            {% endif %}
-        </span>
-
-        <form action="{% url 'dashboard:accept_substitute' t.id %}" method="post" class="substitute-accept-form">
-          {% csrf_token %}
-          <button type="submit" class="btn-substitute-accept">代役を引き受ける</button>
-        </form>
-      </li>
-      {% empty %}
-        <li>代役依頼の家事はありません。</li>
-      {% endfor %}
-    </ul>
-  </div>
 </article>
 
 <p class="license">
@@ -174,6 +188,8 @@
 {% include "components/bottom_nav.html" %}
 {% endblock %}
 {% block script %}
+{{ week_rotation_data|json_script:"week-rotation-data" }}
+<script src="{% static 'js/calendar.js' %}"></script>
 <script>
   const complete = JSON.parse('{{ completion_rate_family | default:0 }}');
   const incomplete = 100 - complete;
@@ -268,7 +284,7 @@
 </script>
 <!-- <script src="{% static 'js/graph.js' %}"></script> -->
 <!-- <script src="{% static 'js/today_mylist.js' %}"></script> -->
-<!-- <script src="{% static 'js/today_list.js' %}"></script> -->
+<script src="{% static 'js/today_list.js' %}"></script>
 <!-- <script src="{% static 'js/calendar.js' %}"></script> -->
 {% endblock %}
 
