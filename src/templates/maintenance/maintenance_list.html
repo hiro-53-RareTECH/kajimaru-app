@@ -7,66 +7,66 @@
 <link rel="stylesheet" href="{% static 'css/components/button.css' %}">
 <link rel="stylesheet" href="{% static 'css/components/top_nav.css' %}">
 <link rel="stylesheet" href="{% static 'css/components/bottom_nav.css' %}">
-<style>
-  .grid-2col { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .panel { background: var(--bg-surface,#fff); border:1px solid #eee; border-radius:10px; padding:12px; }
-  .panel h3 { margin: 0 0 8px; }
-  .item { border-bottom:1px dashed #eee; padding:8px 0; }
-  .item:last-child { border-bottom:none; }
-  .muted { color:#888; font-size:.9rem; }
-  dialog { border: none; border-radius: 10px; padding: 0; width:min(520px,92%); }
-  .dlg-body { padding: 16px; }
-  .dlg-head { padding: 12px 16px; background:#fafafa; border-bottom:1px solid #eee; font-weight:600; }
-  .dlg-foot { padding: 12px 16px; display:flex; gap:8px; justify-content:flex-end; }
-</style>
+<link rel="stylesheet" href="{% static 'css/maintenance/maintenance.css' %}">
 {% endblock %}
 
 {% block header %}{% include "components/top_nav.html" %}{% endblock %}
 {% block page_title %}家電・設備メンテ{% endblock %}
 
 {% block content %}
-<div class="grid-2col">
-  <div class="panel">
-    <h3>家電</h3>
-    {% for m in appliances %}
-      <div class="item">
-        <div><strong>{{ m.target_name }}</strong></div>
-        <div class="muted">
-          最終: {{ m.last_date|date:"Y/m/d" }} /
-          次回: {{ m.next_date|date:"Y/m/d" }} /
-          タスク日: {{ m.task_date|date:"Y/m/d" }}
-        </div>
+<section class="maintenance-section">
+
+  <div class="maintenance-wrapper">
+    <div class="grid-2col">
+      <div class="panel">
+        <h3>家電</h3>
+        {% for m in appliances %}
+          <div class="item">
+            <div><strong>{{ m.target_name }}</strong></div>
+            <div class="muted">
+              最終: {{ m.last_date|date:"Y/m/d" }} <br>
+              次回: {{ m.next_date|date:"Y/m/d" }} <br>
+              タスク日: {{ m.task_date|date:"Y/m/d" }}
+            </div>
+          </div>
+        {% empty %}
+          <p class="muted">登録なし</p>
+        {% endfor %}
       </div>
-    {% empty %}
-      <p class="muted">登録なし</p>
-    {% endfor %}
+  
+      <div class="panel">
+        <h3>設備</h3>
+        {% for m in facilities %}
+          <div class="item">
+            <div><strong>{{ m.target_name }}</strong></div>
+            <div class="muted">
+              最終: {{ m.last_date|date:"Y/m/d" }} <br>
+              次回: {{ m.next_date|date:"Y/m/d" }} <br>
+              タスク日: {{ m.task_date|date:"Y/m/d" }}
+            </div>
+          </div>
+        {% empty %}
+          <p class="muted">登録なし</p>
+        {% endfor %}
+      </div>
+    </div>
   </div>
 
-  <div class="panel">
-    <h3>設備</h3>
-    {% for m in facilities %}
-      <div class="item">
-        <div><strong>{{ m.target_name }}</strong></div>
-        <div class="muted">
-          最終: {{ m.last_date|date:"Y/m/d" }} /
-          次回: {{ m.next_date|date:"Y/m/d" }} /
-          タスク日: {{ m.task_date|date:"Y/m/d" }}
-        </div>
-      </div>
-    {% empty %}
-      <p class="muted">登録なし</p>
-    {% endfor %}
+  <div class="link_set">
+    <button class="btn btn-primary" onclick="document.getElementById('dlg-add').showModal()">＋ 追加する</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('dlg-del').showModal()">削除する</button>
   </div>
-</div>
 
-<p class="link_set" style="margin-top:18px; display:flex; gap:12px; justify-content:center;">
-  <button class="btn btn-primary" onclick="document.getElementById('dlg-add').showModal()">＋ 追加</button>
-  <button class="btn btn-secondary" onclick="document.getElementById('dlg-del').showModal()">削除</button>
-</p>
+</section>
 
 <!-- 追加ダイアログ -->
 <dialog id="dlg-add">
-  <div class="dlg-head">項目を追加</div>
+  <div class="dlg-head">項目を追加
+    <button type="button"
+            class="dlg-close"
+            aria-label="閉じる"
+            onclick="document.getElementById('dlg-add').close()">×</button>
+  </div>
   <form method="post" action="{% url 'maintenance:create' %}">
     <div class="dlg-body">
       {% csrf_token %}
@@ -88,7 +88,7 @@
       </div>
     </div>
     <div class="dlg-foot">
-      <button class="btn btn-secondary" type="button" onclick="document.getElementById('dlg-add').close()">閉じる</button>
+      <!-- <button class="btn btn-secondary" type="button" onclick="document.getElementById('dlg-add').close()">閉じる</button> -->
       <button class="btn btn-primary" type="submit">追加</button>
     </div>
   </form>
@@ -96,14 +96,18 @@
 
 <!-- 削除ダイアログ -->
 <dialog id="dlg-del">
-  <div class="dlg-head">項目を削除</div>
+  <div class="dlg-head">項目を削除
+    <button class="dlg-close"
+            type="button" 
+            aria-label="閉じる"
+            onclick="document.getElementById('dlg-del').close()">×</button>
+  </div>
   <form method="post" action="{% url 'maintenance:delete' %}">
     <div class="dlg-body">
       {% csrf_token %}
       {{ del_form.item_id }}
     </div>
     <div class="dlg-foot">
-      <button class="btn btn-secondary" type="button" onclick="document.getElementById('dlg-del').close()">閉じる</button>
       <button class="btn btn-danger" type="submit" onclick="return confirm('削除しますか？')">削除</button>
     </div>
   </form>

@@ -1,21 +1,3 @@
-// document.addEventListener('DOMContentLoaded', function () {
-//       var calendarEl = document.getElementById('calendar');
-//       var calendar = new FullCalendar.Calendar(calendarEl, {
-//         initialView: 'timeGridWeek',
-//         locale: 'ja',
-//         allDaySlot: false,
-//         nowIndicator: true,
-//         headerToolbar: {
-//           left: 'prev,next',
-//           center: 'title',
-//           right: 'timeGridWeek,timeGridDay'
-//         },
-//         slotMinTime: '04:00:00',
-//         slotMaxTime: '22:00:00',
-//       });
-//       calendar.render();
-//     });
-
 // htmlが全て読み込まれてから実行
 document.addEventListener('DOMContentLoaded', function () {
   // ①毎週の日にちを取得する
@@ -63,9 +45,35 @@ document.addEventListener('DOMContentLoaded', function () {
   const today = new Date();
   const month = today.getMonth() + 1;
   const calendarTitle = document.getElementById("calendar");
-  calendarTitle.textContent = `${month}月：週ローテ表`;
+  calendarTitle.textContent = `${month}月`;
 
   // ③データベースに登録されている家事と担当者を取得、行を作って入れる
+  // djangoから埋め込んだJSONを取得
+  const weekData = JSON.parse(
+    document.getElementById('week-rotation-data').textContent
+  );
+
+  const tbody = document.getElementById('week_rotation');
+
+  weekData.forEach(kaji => {
+    const tr = document.createElement('tr');
+
+    // 家事名セル
+    const th = document.createElement('th');
+    th.scope = 'row';
+    th.textContent = kaji.task_name;
+    tr.appendChild(th);
+
+    // 月〜日の担当者
+    kaji.names.forEach(name => {
+      const td = document.createElement('td');
+      td.textContent = name || '-';  // 空なら空欄
+      tr.appendChild(td);
+    });
+
+    // 表に追加
+    tbody.appendChild(tr);
+  });
 
 
 });

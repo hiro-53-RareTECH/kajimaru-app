@@ -76,6 +76,11 @@ class PinSetForm(forms.Form):
         if p1 != p2:
             raise forms.ValidationError('確認用PINが一致しません。')
         return cleaned
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix =''
+
 
 class PinVerifyForm(forms.Form):
     pin = forms.CharField(
