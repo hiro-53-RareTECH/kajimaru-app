@@ -88,6 +88,45 @@ class DashboardView(LoginRequiredMixin,TemplateView):
 
         can_run_week_tasks = self.request.user.is_staff
 
+        # 週ローテ用追加
+        # 今週（月〜日）の開始・終了
+        week_start = today - timedelta(days=weekday_today)   # 今週の月曜
+        week_end = week_start + timedelta(days=6)            # 今週の日曜
+
+        week_dates = [week_start + timedelta(days=i) for i in range(7)]
+
+        # 今週1週間分の Task（家族全員分）
+        week_tasks_qs = (
+            Task.objects
+            .filter(
+                daily__date__gte=week_start,
+                daily__date__lte=week_end,
+                user__in=family,
+            )
+            .select_related("task_list", "user")
+        )
+
+        # (task_list_id, date) → 担当者名 のマップ
+        task_map = {}
+        for t in week_tasks_qs:
+            task_date = t.daily.date()
+            key = (t.task_list_id, task_date)
+            task_map[key] = t.user.nickname if t.user else ""
+
+        # JS に渡す「表1行分」のデータ
+        # 1行 = 1つの家事（task_name）＋ 7日分の担当者名
+        week_rotation_data = []
+        for tl in tasklists_family:
+            row = {
+                "task_name": tl.task_name,
+                "names": [],
+            }
+            for d in week_dates:
+                name = task_map.get((tl.id, d), "")
+                row["names"].append(name)
+            week_rotation_data.append(row)
+        # 追加ここまで
+        
         #代役タスク
         pending_sub_tasks = Task.objects.filter(
             daily__date=today,
@@ -110,6 +149,9 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             "chores_weekday_by_frequency": chores_weekday_by_frequency,
             "can_run_week_tasks": can_run_week_tasks,
 
+            # 週ローテ
+            "week_rotation_data": week_rotation_data,
+             
             #代役
             "login_user": login_user,
             "pending_sub_tasks": pending_sub_tasks,

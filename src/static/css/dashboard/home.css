@@ -241,6 +241,7 @@
 .task-substitute-note {
   font-size: 0.75rem;
   white-space: nowrap;
+  margin-right: 0.3rem;
 }
 
 /* #tasksTodayListの直下のli.task-itemを指定 */
@@ -428,4 +429,92 @@
 .unfinished_yesterday_list > p {
   font-family: inherit;
   padding: 0.5rem 0.75rem;
+}
+
+/* ▼ 週ローテ表エリア全体 */
+.week-rotation-area {
+  align-items: stretch;   
+}
+
+.week-rotation-header {
+  padding: 0.5rem 0.75rem 0.1rem;
+}
+
+.week-rotation-card {
+  background-color: var(--bg-surface);
+  border-radius: 8px;
+  padding: 0.2rem 0.5rem 0.75rem;
+  box-shadow: 0px 10px 10px -5px rgba(0,0,0,0.10);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto; 
+  max-height: calc(100% - 4.5rem);     
+  overflow-y: auto;               
+}
+
+.schedule_tbl {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.8rem;
+}
+
+.schedule_tbl th,
+.schedule_tbl td {
+  border: 1px solid var(--table-solid);
+  padding: 0.25rem 0.3rem;
+  text-align: center;
+}
+
+.schedule_tbl .col-task {
+  width: 6rem;
+  max-width: 6rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  padding-left: 0.5rem;
+}
+
+.schedule_tbl thead th {
+  white-space: nowrap;
+}
+
+.schedule_tbl thead tr:first-child th {
+  font-size: 0.7rem;
+  color: var(--dashboard-list);
+  font-weight: 500;
+}
+
+.schedule_tbl .week_date {
+  font-size: 0.8rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.schedule_tbl tbody td {
+  font-weight: 600;
+  color: var(--dashboard-list);
+}
+
+.schedule_tbl td.no-data {
+  font-weight: 400;
+  color:  var(--dashboard-list);
+}
+
+.calendar_title {
+  text-align: center;
+  width: 100%;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.schedule_tbl tbody th {
+  font-size: 0.7rem;    
+  font-weight: 500;
+  text-align: left;
+  padding-left: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

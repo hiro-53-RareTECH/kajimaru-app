@@ -12,9 +12,6 @@
   <link rel="stylesheet" href="{% static 'css/components/calendar.css' %}">
   <!-- chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes"></script> -->
-  <!-- FullCalendar -->
-  <!-- <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script> -->
 {% endblock %}
 
 {% block header %}
@@ -55,34 +52,38 @@
       {% endfor %}
     </ul>
   </section>
-  <section class="area">
-    <p id="calendar" class="calendar_title"></p>
-    <!-- <div id="calendar" class="my-calendar"></div> -->
-    <table id="tbl" class="schedule_tbl">
-      <thead>
-        <tr>
-          <th rowspan="2">家事名</th>
-          <th>月</th>
-          <th>火</th>
-          <th>水</th>
-          <th>木</th>
-          <th>金</th>
-          <th>土</th>
-          <th>日</th>
-        </tr>
-        <tr>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-          <td class="week_date"></td>
-        </tr>
-      </thead>
-      <tbody id="week_rotation">
-      </tbody>
-    </table>
+  <section class="area week-rotation-area">
+    <p class="today_houseworklist_header week-rotation-header">
+      <span class="today_title">週ローテ担当表：</span>
+      <span id="calendar" class="today_list"></span> 
+    </p>
+    <div class="week-rotation-card">
+      <table id="tbl" class="schedule_tbl">
+        <thead>
+          <tr>
+            <th rowspan="2" class="col-task">家事名</th>
+            <th>月</th>
+            <th>火</th>
+            <th>水</th>
+            <th>木</th>
+            <th>金</th>
+            <th>土</th>
+            <th>日</th>
+          </tr>
+          <tr>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+            <td class="week_date"></td>
+          </tr>
+        </thead>
+        <tbody id="week_rotation">
+        </tbody>
+      </table>
+    </div>
   </section>
 </div>
 <article class="mylist_area">
@@ -187,6 +188,8 @@
 {% include "components/bottom_nav.html" %}
 {% endblock %}
 {% block script %}
+{{ week_rotation_data|json_script:"week-rotation-data" }}
+<script src="{% static 'js/calendar.js' %}"></script>
 <script>
   const complete = JSON.parse('{{ completion_rate_family | default:0 }}');
   const incomplete = 100 - complete;
@@ -281,7 +284,7 @@
 </script>
 <!-- <script src="{% static 'js/graph.js' %}"></script> -->
 <!-- <script src="{% static 'js/today_mylist.js' %}"></script> -->
-<!-- <script src="{% static 'js/today_list.js' %}"></script> -->
+<script src="{% static 'js/today_list.js' %}"></script>
 <!-- <script src="{% static 'js/calendar.js' %}"></script> -->
 {% endblock %}
 
