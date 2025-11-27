@@ -73,14 +73,14 @@ def join_verify(request):
         return redirect('welcome')
     form = JoinCodeForm(request.POST)
     if not form.is_valid():
-        messages.error(request, '8桁の参加コードを入力してください'); 
+        messages.error(request, '8桁の招待コードを入力してください'); 
         return redirect('welcome')
 
     code = form.cleaned_data['code8']
     with transaction.atomic():
         jc = (JoinCode.objects.select_for_update().filter(code8=code).first())
         if not jc or not jc.is_valid():
-            messages.error(request, '無効な参加コードです'); return redirect('welcome')
+            messages.error(request, '無効な招待コードです'); return redirect('welcome')
         if jc.used_at is None:
             jc.used_at = timezone.now()
             jc.max_uses = timezone.now()
