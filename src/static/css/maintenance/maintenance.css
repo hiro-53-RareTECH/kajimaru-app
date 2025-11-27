@@ -1,9 +1,19 @@
+.maintenance-section {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 70px - 72px - 5rem);
+  padding-top: 1rem;
+  padding-bottom: 1.2rem;
+}
+
+
 .maintenance-wrapper {
+  flex: 1;              
+  min-height: 0; 
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding-right: 0.25rem;
-  margin-top: 2rem;
-  max-height: 450px;         
-  min-height: 450px;
+  margin-top: 0.5rem;
 }
 
 .grid-2col { 

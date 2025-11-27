@@ -10,13 +10,13 @@
 <link rel="stylesheet" href="{% static 'css/stocks/stocks.css' %}">
 <style>
   /* --- クリック阻害対策 --- */
-  .stocklist_section { padding-bottom: 120px; }               /* フッターに隠れない */
-  .stock-item { position: relative; }                          /* z-index土台 */
+  /* .stocklist_section { padding-bottom: 120px; }               フッターに隠れない
+  .stock-item { position: relative; }                          z-index土台
   .stock-item::before,
-  .stock-item::after { pointer-events: none !important; }      /* 装飾はクリック無効 */
+  .stock-item::after { pointer-events: none !important; }      装飾はクリック無効
   .stock-item .btn,
   .stock-del-form,
-  .stock-del-form .btn { position: relative; z-index: 10; pointer-events: auto; }
+  .stock-del-form .btn { position: relative; z-index: 10; pointer-events: auto; } */
   /* .bottom_nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; } */
 </style>
 {% endblock %}
@@ -25,15 +25,7 @@
 {% block page_title %}在庫リスト{% endblock %}
 
 {% block content %}
-  <!-- <div class="stocks-header" style="padding: 0 1rem 1rem;">
-    <form method="post" action="{% url 'stocks:enqueue' %}">
-      {% csrf_token %}
-      <button class="btn btn-secondary" type="submit">
-        期限間近を買いものリストへ追加
-      </button>
-    </form>
-  </div> -->
-
+  
   <section class="stocklist_section">
     <div class="stock-list-area">
       {% for s in items %}
@@ -60,21 +52,19 @@
         <p class="stock-item muted">登録された在庫はありません。</p>
       {% endfor %}
     </div>
+    <hr>
+    <div class="stocks-footer">
+      <form method="post" action="{% url 'stocks:enqueue' %}">
+        {% csrf_token %}
+        <button class="btn btn-secondary" type="submit">
+          期限間近を買いものリストへ追加
+        </button>
+      </form>
+    </div>
+    <p class="link_set">
+      <a href="{% url 'stocks:create' %}" class="btn btn-primary">＋ 登録画面へ</a>
+    </p>
   </section>
-
-  <hr>
-  <div class="stocks-footer">
-    <form method="post" action="{% url 'stocks:enqueue' %}">
-      {% csrf_token %}
-      <button class="btn btn-secondary" type="submit">
-        期限間近を買いものリストへ追加
-      </button>
-    </form>
-  </div>
-  <p class="link_set">
-    <a href="{% url 'stocks:create' %}" class="btn btn-primary">＋ 登録画面へ</a>
-  </p>
-
   <!-- 予防線：クリックが阻害される環境でも fetch で強制削除できるように -->
   <script>
     (function () {

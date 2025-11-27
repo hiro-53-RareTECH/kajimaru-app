@@ -17,6 +17,7 @@
 
 {% block page_title %}管理者ページ{% endblock %}
 {% block content %}
+<div class="admin_user_layout">
 
   <p class="new_member"><a href="{% url 'family_member_add' %}">＋ 新規ユーザーを追加</a></p>
   
@@ -58,7 +59,7 @@
   </div>
   
   {% for m in messages %}<p class="alert_message" style="color:red">{{ m }}</p>{% endfor %}
-
+</div>
 {% endblock %}
 
 {% block footer %}

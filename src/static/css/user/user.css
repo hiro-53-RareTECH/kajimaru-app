@@ -187,15 +187,6 @@ form label {
 
 /* owner_family_manage.html */
 
-/* #id_avatar_key {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  width: fit-content;
-  white-space: nowrap;
-  margin: 0;
-} */
-
 .avatar-grid {
   display: grid;
   grid-template-columns: repeat(4, 72px);
@@ -286,6 +277,22 @@ p.help_text {
 }
 
 /* admin_user.html */
+
+.admin_user_layout {
+  height: calc(100dvh - 70px - 72px - 5rem);
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;  
+}
+
+.admin_user_layout .link_set {
+  margin-top: 0;  
+}
+
+.admin_user_layout hr {
+  margin-bottom: 0;
+}
+
 .btn_sets {
   display: flex;
   flex-direction: column;
@@ -303,12 +310,11 @@ p.help_text {
 }
 
 .member_list_section {
-  display: block;
-  max-height: 500px;
+  flex: 0.8;                 
+  min-height: 0;  
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch; 
-  margin-top: 1rem;
-  padding-bottom: 2rem; 
+  margin-top: 0;
+  padding-bottom: 0.5rem; 
   padding-top: 0.2rem;
   }
 
