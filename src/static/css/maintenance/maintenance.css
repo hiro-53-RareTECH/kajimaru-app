@@ -1,19 +1,23 @@
+.maintenance-wrapper {
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  margin-top: 2rem;
+  max-height: 450px;         
+  min-height: 450px;
+}
+
 .grid-2col { 
     display: grid; 
     grid-template-columns: 1fr 1fr; 
     gap: 1rem; 
-    margin-top: 2rem;
-    max-height: 450px;         
-    min-height: 450px;
-    overflow-y: auto; 
-    padding-right: 0.25rem;
+    align-self: start;
 }
   
 .panel { 
     background: var(--bg-surface,#fff); 
     border:1px solid #eee; 
     border-radius: 12px; 
-    padding:12px; 
+    padding:12px;  
     box-shadow:
     0 4px 8px rgba(0,0,0,0.10),
     0 1px 4px rgba(0,0,0,0.06);

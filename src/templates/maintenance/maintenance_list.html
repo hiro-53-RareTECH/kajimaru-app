@@ -14,37 +14,39 @@
 {% block page_title %}家電・設備メンテ{% endblock %}
 
 {% block content %}
-<div class="grid-2col">
-  <div class="panel">
-    <h3>家電</h3>
-    {% for m in appliances %}
-      <div class="item">
-        <div><strong>{{ m.target_name }}</strong></div>
-        <div class="muted">
-          最終: {{ m.last_date|date:"Y/m/d" }} <br>
-          次回: {{ m.next_date|date:"Y/m/d" }} <br>
-          タスク日: {{ m.task_date|date:"Y/m/d" }}
+<div class="maintenance-wrapper">
+  <div class="grid-2col">
+    <div class="panel">
+      <h3>家電</h3>
+      {% for m in appliances %}
+        <div class="item">
+          <div><strong>{{ m.target_name }}</strong></div>
+          <div class="muted">
+            最終: {{ m.last_date|date:"Y/m/d" }} <br>
+            次回: {{ m.next_date|date:"Y/m/d" }} <br>
+            タスク日: {{ m.task_date|date:"Y/m/d" }}
+          </div>
         </div>
-      </div>
-    {% empty %}
-      <p class="muted">登録なし</p>
-    {% endfor %}
-  </div>
-
-  <div class="panel">
-    <h3>設備</h3>
-    {% for m in facilities %}
-      <div class="item">
-        <div><strong>{{ m.target_name }}</strong></div>
-        <div class="muted">
-          最終: {{ m.last_date|date:"Y/m/d" }} <br>
-          次回: {{ m.next_date|date:"Y/m/d" }} <br>
-          タスク日: {{ m.task_date|date:"Y/m/d" }}
+      {% empty %}
+        <p class="muted">登録なし</p>
+      {% endfor %}
+    </div>
+  
+    <div class="panel">
+      <h3>設備</h3>
+      {% for m in facilities %}
+        <div class="item">
+          <div><strong>{{ m.target_name }}</strong></div>
+          <div class="muted">
+            最終: {{ m.last_date|date:"Y/m/d" }} <br>
+            次回: {{ m.next_date|date:"Y/m/d" }} <br>
+            タスク日: {{ m.task_date|date:"Y/m/d" }}
+          </div>
         </div>
-      </div>
-    {% empty %}
-      <p class="muted">登録なし</p>
-    {% endfor %}
+      {% empty %}
+        <p class="muted">登録なし</p>
+      {% endfor %}
+    </div>
   </div>
 </div>
 

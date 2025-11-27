@@ -1,6 +1,7 @@
 .main {
     padding-left: 0;
     padding-right: 0;
+    padding-bottom: 5rem;
 }
 
 .page-section {
@@ -108,23 +109,17 @@
 }
 
 .today_mylist ul li {
-  margin-left: 1em;
+  /* margin-left: 1em; */
   font-size: 0.9rem;
   color: var(--dashboard-list); 
   font-weight: 600;
   margin-top: 0.2rem;
-  display: block;
-}
-
-.today_mylist .task-name {
-  display: inline-block;                         
-  border-bottom: 1px solid var(--tasklist-underline);
-  padding-bottom: 0.1rem;                        
 }
 
 .unfinished_yesterday_list {
   margin-top: 1rem;
   background-color: var(--bg-surface);
+  box-shadow: 0px 10px 10px -5px rgba(0,0,0,0.10);
 }
 
 .unfinished_yesterday_list p {
@@ -235,3 +230,202 @@
   margin: 0;
 }
 
+.today_mylist .task-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+.task-substitute-status,
+.task-substitute-note {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+/* #tasksTodayListの直下のli.task-itemを指定 */
+.today_mylist #tasksTodayList > li.task-item {
+  display: flex;
+  align-items: center;   
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.today_mylist #tasksTodayList > li.task-item > .task-row {
+  display: contents;     
+}
+
+.today_mylist .task-main {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1 1 auto;        /* 残り幅はここにあげる（左側が伸びる） */
+  min-width: 0;
+}
+
+.today_mylist .task-name {
+  display: inline-block;
+  border-bottom: 1px solid var(--tasklist-underline);
+  padding-bottom: 0.1rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;   
+}
+
+.today_mylist .task-substitute-actions {
+  padding-right: 0.8rem;
+  white-space: nowrap;
+}
+
+.today_mylist .task-substitute-actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.today_mylist .btn-substitute-request {
+  font-size: 0.8rem;
+  padding: 2px 10px;         
+  height: auto;
+  line-height: 1.3;
+  border-radius: 999px;
+  border: 1px solid var(--btn-primary);
+  background-color: var(--bg-surface);
+  color: var(--btn-primary);
+  display: inline-flex;
+  align-items: center;        
+}
+
+/* --- 多忙フラグエリア --- */
+.busy_flag_area {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-surface);
+  box-shadow: 0px 10px 10px -5px rgba(0,0,0,0.10);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.busy_flag_area form {
+  margin: 0;
+}
+
+.busy_flag_area label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.busy_flag_area input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+}
+
+ /* 代役募集中 */
+.substitute_pending_list {
+  margin-top: 1rem;
+  background-color: var(--bg-surface);
+  box-shadow: 0px 10px 10px -5px rgba(0,0,0,0.10);
+  border-radius: 8px;
+}
+
+.substitute_pending_list > p {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  color: var(--text);
+}
+
+.substitute_pending_list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0.75rem 0.75rem;
+  text-overflow: ellipsis;
+}
+
+.substitute_pending_list .pending-item:last-child {
+  border-bottom: none;
+}
+
+.substitute_pending_list .pending-row {
+  display: flex;
+  align-items: flex-start;
+  /* align-items: center; */
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.substitute_pending_list .housework_label {
+  font-size: 0.85rem;
+  color: var(--dashboard-list);
+}
+
+.substitute_pending_list .pending-actions {
+  flex: 0 0 auto;
+}
+
+.substitute_pending_list .substitute-accept-form {
+  margin: 0;
+}
+
+.substitute_pending_list ul > li.pending-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.9rem;
+  flex-wrap: nowrap;
+
+}
+.substitute_pending_list ul li {
+  font-size: 0.85rem;
+  color: var(--dashboard-list);
+  margin-left: 0.5rem;
+}
+
+.substitute_pending_list ul > li.pending-item > .pending-row {
+  display: contents;
+}
+
+.substitute_pending_list .pending-main {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1 1 auto;
+  min-width: 0; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.substitute_pending_list .housework_value {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.substitute_pending_list .pending-actions form {
+  margin: 0;
+}
+
+.substitute_pending_list .btn-substitute-accept {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  line-height: 1.3;
+  border-radius: 999px;
+  border: 1px solid var(--btn-primary);
+  background-color: var(--bg-surface);
+  color: var(--btn-primary);
+  display: inline-flex;
+  align-items: center;
+}
+
+.today_mylist > p,
+.substitute_pending_list > p,
+.unfinished_yesterday_list > p {
+  font-family: inherit;
+  padding: 0.5rem 0.75rem;
+}
