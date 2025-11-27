@@ -54,7 +54,7 @@ form label {
 
 .caution_text {
   text-align: center;
-  margin-top: 0;
+  margin-top: 2rem;
   display: flex;
   flex-direction: column;
   row-gap: 0;
@@ -285,15 +285,6 @@ p.help_text {
   text-align: center;
 }
 
-/* admin_gate.html */
-
-.admin-pin-form .btn-primary {
-    padding-left: 3.7rem;
-    padding-right: 3.7rem;
-    margin-top: 3rem;
-  }
-
-
 /* admin_user.html */
 .btn_sets {
   display: flex;
@@ -327,7 +318,6 @@ p.help_text {
   flex-direction: column;
   gap: 0.8rem;  
 }
-
 
 .member_card {
   width: 100%;
@@ -473,29 +463,55 @@ p.help_text {
   padding-left: 1em;   /* 全体を1文字分右へ */
 }
 
-.pin-input input[type="password"]#id_pin {
-  text-align: center !important;
-  letter-spacing: .35em !important;
-  font-size: 1.6rem !important;
-  font-family: ui-monospace, Menlo, Consolas, monospace !important;
-  width: 16ch !important;
+.admin-pin-form,
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* PINの行を横並びにして折り返し禁止 */
-.pin-input p{
-  display:flex;           
-  align-items:flex-start;
-  gap:.5rem;
-  margin:0;                
+.admin-pin-form p,
+.login-form p {
+  width: 100%;
+  max-width: 380px;       
+  margin: 0 auto 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
-.pin-input p > label{
-  white-space:nowrap;       
-  margin:0;
+
+.admin-pin-form label,
+.login-form label {
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;  
+  font-size: 0.95rem;
 }
-.pin-input p > input{
-  width:10ch;              
-  text-align:center;
-  letter-spacing:.35em;
+
+.pin-input input {
+  width: 100%;
+  padding: 0.25rem 0.4rem;
+  text-align: center;
+  letter-spacing: .25em;
+  font-size: 1.2rem;
   font-family: ui-monospace, Menlo, Consolas, monospace;
+  box-sizing: border-box;
+}
+
+.admin-pin-form .btn-primary,
+.login-form .btn-primary {
+  width: auto;
+  max-width: none;
+  padding: 12px 32px;     
+  min-width: 190px;      
+  margin: 1.2rem auto 0;  
+  display: inline-block;
+  text-align: center;
+}
+
+.admin-pin-form .link_set {
+  margin-top: 0.6rem;  
+  gap: 0.2rem;         
 }
 
