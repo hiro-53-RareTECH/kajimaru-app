@@ -133,6 +133,7 @@
 ## 開発環境確認手順
 <details>
 <summary>Dockerの起動から終了までの手順</summary>
+
 ### 1) 環境変数ファイル.envの作成
 .env.exampleをコピーして、.envファイルをプロジェクトルートディレクトリ直下に保存する。  
 注）.envファイルは必ず、.env.exampleファイルと同じ階層に保存すること。（Docker、Djangoの設定ファイルで環境変数.envのファイルパスを指定しているため。）  
@@ -204,6 +205,7 @@ make down
 
 <details>
 <summary>アクセス先</summary>
+    
 ブラウザで以下のアドレスを入力して、Djangoの初期画面が開いていることを確認する。  
 ```
 http://localhost:8000/
@@ -220,6 +222,7 @@ http://127.0.0.1:8000/
 
 <details>
 <summary>各コンテナへのアクセス手順</summary>
+    
 ### 1)MySQL(db)
 MySQLコンテナへのアクセスは、以下のコマンドを入力する。  
 ```
@@ -253,6 +256,7 @@ make logs
 
 <details>
 <summary>Django 新規アプリ作成手順</summary>
+    
 ### 1) 新規アプリの作成
 以下のコマンドで新規アプリを作成する。  
 通常のコマンドでは、長くなるため、以下のmakeコマンドを推奨する。  
@@ -301,6 +305,7 @@ class TestConfig(AppConfig):
 
 <details>
 <summary>Django マイグレーションファイル作成、マイグレーションの手順</summary>
+    
 ### 1) models.pyへのテーブル定義
 該当アプリディレクトリのmodels.pyにテーブルを定義する。  
 
@@ -330,6 +335,7 @@ make migrate
 
 <details>
 <summary>Django 管理者作成手順</summary>
+    
 Djangoでの管理者作成は、以下のコマンドで行う。  
 ```
 docker compose exec web python manage.py createsuperuser
@@ -385,6 +391,7 @@ http://localhost:8000/ or http://127.0.0.1:8000/
 <details>
 <summary>7. 本番環境へのデプロイ</summary>
 </details>
+
 
 
 
