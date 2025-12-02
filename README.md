@@ -36,16 +36,16 @@
 ## スタート画面、ダッシュボード画面
 ### スタート画面
 <p display="flex" justify-content="space-between">
-    <img width="auto" height="auto" alt="Image" src="https://github.com/user-attachments/assets/faca24c0-602e-425c-afd6-3e559d939498" />
-    <img width="auto" height="auto" alt="Image" src="https://github.com/user-attachments/assets/bbdec27b-b366-442c-9285-4933ad764c92" />
-    <img width="auto" height="auto" alt="Image" src="https://github.com/user-attachments/assets/bb4cf3c8-5e5b-4255-9903-517a5993662c" />
+    <img width="auto" height="auto" alt="Image" flex-basis="30%" src="https://github.com/user-attachments/assets/faca24c0-602e-425c-afd6-3e559d939498" />
+    <img width="auto" height="auto" alt="Image" flex-basis="30%" src="https://github.com/user-attachments/assets/bbdec27b-b366-442c-9285-4933ad764c92" />
+    <img width="auto" height="auto" alt="Image" flex-basis="30%" src="https://github.com/user-attachments/assets/bb4cf3c8-5e5b-4255-9903-517a5993662c" />
 <p>
     
 ### ダッシュボード画面
 <p display="flex" justify-content="space-between">
-    <img width="auto" height="auto" alt="Image" src="https://github.com/user-attachments/assets/70ff15cc-f40a-4119-8de0-a57d836a9795" />
-    <img width="auto" height="auto" alt="Image" src="https://github.com/user-attachments/assets/b5c876e4-c6af-4c4d-a37f-9db573425092" />
-    <img width="auto" height="auto" alt="Image" src="https://github.com/user-attachments/assets/1108cffb-6776-465a-85fe-7eec9c2e4b34" />
+    <img width="auto" height="auto" alt="Image" flex-basis="30%" src="https://github.com/user-attachments/assets/70ff15cc-f40a-4119-8de0-a57d836a9795" />
+    <img width="auto" height="auto" alt="Image" flex-basis="30%" src="https://github.com/user-attachments/assets/b5c876e4-c6af-4c4d-a37f-9db573425092" />
+    <img width="auto" height="auto" alt="Image" flex-basis="30%" src="https://github.com/user-attachments/assets/1108cffb-6776-465a-85fe-7eec9c2e4b34" />
 </p>
 
 ## 機能一覧
@@ -381,6 +381,7 @@ http://localhost:8000/ or http://127.0.0.1:8000/
 <details>
 <summary>7. 本番環境へのデプロイ</summary>
 </details>
+
 
 
 
