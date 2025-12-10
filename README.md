@@ -50,7 +50,7 @@
     <summary>フロントエンド</summary>
 
 **1) JavaScript** <br>
-React, VueといったJavaScriptのライブラリは、開発メンバーの知見がないことおよび2ヶ月間という限られた期間内では学習コストが高いため、素のJavaScript（Vanila JS）を採用することとした。
+React, VueといったJavaScriptのライブラリ、フレームワークは、開発メンバーの知見がないことおよび2ヶ月間という限られた期間内では学習コストが高いため、素のJavaScript（Vanila JS）を採用することとした。
 
 **2) Bootstrap** <br>
 開発スピードの向上を図るため、HTMLのクラスの中でCSSを記述できるBootstrapを採用した。<br>
@@ -497,11 +497,84 @@ http://localhost:8000/ or http://127.0.0.1:8000/
 
 <details>
 <summary>1. 作業フロー</summary>
-次のとおり、本インフラ設計の作業フローを示す。
+次のとおり、本インフラ設計の作業フローを示す。  
+
+```mermaid
+flowchart TB
+    A[1. ディレクトリ・ファイル構成の検討<br/>・Djnago設定ファイルの分離（開発・本番）<br/>] --> B[2. インフラ技術の選定<br/><br/>]
+    B --> C[3. Dockerによる開発環境構築<br/><br/>]
+    C --> D[4. インフラ構成図の検討<br/><br/>]
+    D --> E[5. ドメイン取得<br/><br/>]
+    E --> F[6. AWS環境構築<br/><br/>]
+    F --> G[7. デプロイ作業<br/><br/>]
+```
+
 </details>
 
 <details>
 <summary>2. ディレクトリ・ファイル構成の検討</summary>
+
+
+**1) Djangoの設定ファイルの切り分け**  
+本アプリでは、**Django**を使用するため、はじめにDjangoのディレクトリ・ファイル構成の「ベストプラクティス」を検討した。  
+Djangoの公式ドキュメントには、ディレクトリ・ファイル構成のベストプラクティスは示されていないものの、Qiita, Zenn等の技術記事に参考となりそうなディレクトリ・ファイル構成が掲載されていたため、これを準用することとした。  
+具体的には、Djangoの設定ファイルである「settings.py」を「開発用」と「本番用」で分け、環境変数で切り替えることにより、運用性・保守性を向上させた。  
+開発用と本番用でファイルを切り分けることにより、DEBUGのTrue/Falseの切り替え、Django, MySQLの機密情報の切り替え（.envとAWS ParameterStore/KMSの切り替え）、ALLOWED_HOSTS設定・セキュリティ設定等が開発用ソースコードを書き換えることなく可能となる。  
+そのため、最新のdevelopブランチからgit pullでソースを取り込み、環境変数を切り替えるのみで本番環境への移行が可能となり、コンフリクトの回避、デプロイの効率化が図れる。  
+
+以下にDjango設定ファイルの構成を抜粋して示す。  
+
+<pre>
+.
+└── kajimaru-app/
+    ├── src/
+    │   ├── config/
+    │   │   ├── settings/
+    │   │   │   ├── base.py
+    │   │   │   ├── dev.py
+    │   │   │   └── prod.py
+    │   │   ├── asgi.py
+    │   │   ├── urls.py
+    │   │   ├── views.py
+    │   │   └── wsgi.py
+    │   └── manage.py
+</pre>
+
+settings配下が設定ファイルの中身であり、base.pyには開発と本番で共通となる設定を記述した。  
+dev.pyは開発環境用のファイル、prod.pyは本番環境用のファイルであり、それぞれbase.pyの内容をインポートして、開発と本番の差分をそれぞれのファイルに記述している。  
+dev.py, prod.pyの切り替えは、manage.pyにて行い、以下のコードの「DJANGO_SETTINGS_MODULE」の環境変数にて切り替えを行っている。  
+dev.pyを使用する場合は「config.settings.dev」、prod.pyを使用する場合は「config.settings.prod」となる。  
+第二引数にはデフォルト値として、config.settings.devを設定し、環境変数に指定がない場合は、開発環境用ファイルを使用することとしている。
+
+```
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.dev')
+```
+
+**参考資料**  
+https://plus-info-tech.com/django-pj-directory-structure#google_vignette  
+https://qiita.com/ukisoft/items/8912d0a66151609d9ff9  
+
+**2) Docker Compose, Dockerfileの切り分け**  
+Docker compose, Dockerfileについても、開発環境と本番環境で切り分けを行い、開発環境のソースコードを残しつつ、本番環境設定を行った。  
+以下にDocker関連ディレクトリ・ファイルを抜粋して示す。  
+
+<pre>
+.
+└── kajimaru-app/
+    ├── docker/
+    │   ├── django_cron                # 本番環境用の自動通知設定
+    │   ├── Dockerfile                 # 開発環境用
+    │   ├── Dockerfile.prod            # 本番環境用
+    │   └── wait-for-it.sh             # 開発環境用のコンテナ起動順の制御設定
+    ├── infra/                         # 本番環境用（nginx）
+    │   └── nginx/
+    │       ├── conf.d/
+    │       │   └── kajimaru.conf
+    │       ├── Dockerfile
+    │       └── nginx.conf
+    ├── docker-compose.prod.yml        # 本番環境用
+    ├── docerk-compose.yml             # 開発環境用
+</pre>
 </details>
 
 <details>
@@ -534,6 +607,7 @@ http://localhost:8000/ or http://127.0.0.1:8000/
 <details>
 <summary>7. 本番環境へのデプロイ</summary>
 </details>
+
 
 
 
