@@ -761,22 +761,58 @@ Amazon Linux2023のリポジトリには、「docker（エンジン）」はあ�
 各手順を整理すると以下のとおりとなる。  
 
 - docker（エンジン）のインストール
+  
+```
+sudo dnf -y install docker
 ```
 
+- dockerの自動起動設定
+
+```
+systemctl enable --now docker
 ```
 
 - docker composeのインストール
+docker composeのGitHubリポジトリ（https://github.com/docker/compose/releases）より、現時点（2025/11月時点）での最新バージョンは「v2.40.3」である。  
+Amazon Linux 2023の「docker」（https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html）より、バージョンは「25.0.8-1」であり、docker engineとdocker composeの互換表（https://docs.docker.jp/compose/compose-file/compose-versioning.html#compose-file-compatibility-matrix）を確認すると、docker Engine「19.03.0+」に対して、docker compose仕様は「3.8」であり、これらの関係から、互換性はあると考えられる。  
+よって、最新版の「v2.40.3」をインストールする。  
+「v2.40.3」のAssetsを確認すると、OS、アーキテクチャに応じてインストールするものが決まるため、EC2のOS、アーキテクチャを確認する。  
+uname, uname -mとコマンドを叩くと「Linux」、「X86_64」が表示される。  
+よってAssetsより、「Linux」, 「X86_64」に合致するものをインストールする。
+インストール手順は以下のとおりである。
+
 ```
+mkdir -p /usr/local/lib/docker/cli-plugins/
+```
+
+OS、アーキテクチャが「Linux」、「X86_64」であることを確認する。
+```
+uname
+```
+```
+uname -m
+```
+
+```
+curl -SL https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+```
+```
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 ```
 
 - docker buildxのインストール
-
+```
+```
 
 **参考資料**  
 - Amazon Linux 2023のリポジトリ一覧
-  https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html
+https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html
 - docker engine / docker composeのインストール
-  https://sig9.org/blog/2023/08/28/
+https://sig9.org/blog/2023/08/28/
+- docker composeのGitHubリポジトリ
+https://github.com/docker/compose/releases
+- docker engineとdocker composeの互換表
+https://docs.docker.jp/compose/compose-file/compose-versioning.html#compose-file-compatibility-matrix
 
 **2-4) ALB設定**  
 
@@ -830,6 +866,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 これにより、本番環境設定をチームメンバーに共有する。  
 
 </details>
+
 
 
 
