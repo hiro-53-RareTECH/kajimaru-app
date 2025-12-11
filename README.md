@@ -699,10 +699,11 @@ flowchart TB
     B[2. セキュリティ、権限設定<br/>①SG作成<br/>②IAMロール作成]:::left
     B --> C[3. EC2設定<br/>①EC2インスタンス作成<br/>②ソフト、パッケージ（Git, Docker）のインストール]:::left
     C --> D[4. ALB設定<br/>①SG、TG作成<br/>②ALB作成<br/>③Route53に関連付け]:::left
-    D --> E[5. RDS設定<br/>①RDS MySQL作成<br/>②EC2からRDSへの疎通確認]:::left
+    D --> E[5. RDS設定<br/>①RDS MySQL作成<br/>②EC2からRDSへの接続確認]:::left
     E --> F[6. Git pull<br/>①リモートリポジトリからpull]:::left
     F --> G[7. 本番環境設定（EC2内での作業）<br/>①Dockerの本番用設定<br/>②Djangoの本番用設定<br/>③Nginxの本番用設定<br/>④Docker compose起動（デプロイ）<br/>⑤ヘルスチェック、疎通確認]:::left
-    G --> H[8. Git push<br/>①リモートリポジトリへpush]:::left
+    G --> H[8. EC2の複製<br/>①AMI作成<br/>②EC2インスタンス作成<br/>③SG, TG再設定<br/>④Docker compose起動]:::left
+    H --> I[9. Git push<br/>①リモートリポジトリへpush]:::left
 
 ```
 
@@ -712,6 +713,16 @@ flowchart TB
 **2-1) ネットワーク設定**  
 **①VPC作成**  
 
+
+**②サブネット作成**  
+
+**③IGW作成**  
+
+**④NATGW作成**  
+
+**⑤ルートテーブル作成**  
+
+**⑥VPCエンドポイント作成**  
 
 **2-2) セキュリティ、権限設定**  
 
@@ -723,7 +734,15 @@ flowchart TB
 
 
 **2-5) RDS設定**  
+**①RDS MySQL作成**  
+RDS MySQLのメジャーバージョンは、標準サポートがある**8.4**とした。  
+**8.0**は標準サポート期限が「2026年7月31日」であり、実務での長期運用を想定した場合に避けたほうがいいと考えた。  
+マイナーバージョンは、開発環境との整合を取るため、開発開始時の2025年10月時点での最新版とし、**8.4.6**とした。  
+RDS MySQLはコスト削減のため「無料利用枠」を指定し、インスタンスタイプは**db.t4g.micro**とし、ストレージは**汎用SSD**（gp2）の**20GB**とした。  
 
+**②EC2からRDSへの接続確認**  
+RDS MySQLが作成できた後に、セッションマネージャーでEC2内にアクセスし、EC2からRDS MySQLの接続確認を行う。  
+EC2Amazon Linux
 
 **2-6) Git pull**  
 GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチをpull（初回はclone）する。  
@@ -732,12 +751,16 @@ GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチ�
 **2-7) 本番環境設定（EC2内での作業）**  
 
 
-**2-8) Git push**  
+**2-8) EC2の複製**  
+
+
+**2-9) Git push**  
 本番環境設定が完了し、デプロイが確認できた後に、GitHubのリモートリポジトリへpushする。  
 git flowに準じ、releaseブランチからmainブランチへpushする。  
 これにより、本番環境設定をチームメンバーに共有する。  
 
 </details>
+
 
 
 
