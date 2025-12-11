@@ -498,7 +498,7 @@ http://localhost:8000/ or http://127.0.0.1:8000/
 
 <details>
 <summary>1. ディレクトリ・ファイル構成の検討</summary>
-
+<br>
 
 **1) Djangoの設定ファイルの切り分け**  
 本アプリでは、**Django**を使用するため、はじめにDjangoのディレクトリ・ファイル構成の「ベストプラクティス」を検討した。  
@@ -564,6 +564,7 @@ Docker compose, Dockerfileについても、開発環境と本番環境で切り
 
 <details>
 <summary>2. インフラ技術の選定</summary>
+<br>
 
 前述の[使用技術](#使用技術)の「インフラ」より、インフラ構造は、Web3層構造（Webサーバー、アプリケーションサーバー、データベースサーバー）とし、各層を独立させることで、「開発性・保守性」を向上させるものとした。  
 以下に選定したインフラ技術を示す。  
@@ -585,6 +586,7 @@ Docker compose, Dockerfileについても、開発環境と本番環境で切り
 
 <details>
 <summary>3. Dockerによる開発環境構築</summary>
+<br>
 
 **1) コンテナ**  
 開発環境で必要なコンテナは、DBサーバーである**MySQL**およびアプリケーションサーバーである**Django**(Python)である。  
@@ -615,7 +617,7 @@ Django, Gunicorn, Bootstrap, mysqlclient等をインストールする。
 
 <details>
 <summary>4. インフラ構成図の検討</summary>
-
+<br>
 
 **1) インフラ構成図**  
 AWSを使用して、インフラを構築する。  
@@ -654,8 +656,9 @@ AWSを使用して、インフラを構築する。
 
 <details>
 <summary>5. 通信経路図</summary>
+<br>
 
-以下のとおり、通信経路図を示す。
+次のとおり、通信経路図を示す。
 
 **1) 通信経路図**  
 
@@ -697,7 +700,7 @@ flowchart TB
     classDef left text-align:left;
     A[1. ネットワーク設定<br/>①VPC作成<br/>②サブネット作成<br/>③IGW作成<br/>④NATGW作成<br/>⑤ルートテーブル作成<br/>⑥VPCエンドポイント作成]:::left --> 
     B[2. セキュリティ、権限設定<br/>①SG作成<br/>②IAMロール作成]:::left
-    B --> C[3. EC2設定<br/>①EC2インスタンス作成<br/>②ソフト、パッケージ（Git, Docker）のインストール]:::left
+    B --> C[3. EC2設定<br/>①EC2インスタンス作成<br/>②セッションマネージャーでのEC2接続<br/>③Git, Dockerのインストール]:::left
     C --> D[4. ALB設定<br/>①SG、TG作成<br/>②ALB作成<br/>③Route53に関連付け]:::left
     D --> E[5. RDS設定<br/>①RDS MySQL作成<br/>②EC2からRDSへの接続確認]:::left
     E --> F[6. Git pull<br/>①リモートリポジトリからpull]:::left
@@ -729,10 +732,51 @@ flowchart TB
 
 **2-3) EC2設定**  
 **①EC2インスタンス作成**  
+EC2インスタンスを1台作成する。2台目のEC2インスタンスは、1台目のデプロイが完了した後に設定する。  
+EC2のマシンイメージは、AWSに最適化されており、デフォルトでセキュリティが考慮されている「**Amazon Linux2023**」とする。  
+インスタンスタイプは、コスト削減のため、無料枠の「**t2.micro**」とする。
+
+**②セッションマネージャーでのEC2接続**  
 
 
-**②ソフト、パッケージ（Git, Docker）のインストール**  
+**③Git, Dockerのインストール**  
+セッションマネージャーでEC2に接続し、EC2内にGit, Dockerをインストールする。  
+Gitのインストールの詳細は、以下の記事を参照することとする。  
+https://qiita.com/myaX/items/677cfd8a669d6c7eff80
+<br>
+GitインストールおよびGitHubへのssh接続が完了した後に、対象のリポジトリをリモート設定する。  
+```
+git remote -v
+```
+```
+git remote set-url origin <新しいURL>
+```
 
+<br>
+次にDockerをインストールする。  
+Amazon Linux2023のリポジトリには、「docker（エンジン）」はあるものの、「docker compose」はなく、「docker（エンジン）」のみのインストールでは、docker composeコマンドがエラーとなる。  
+そのため、docker composeのGitHubリポジトリからインストールする。  
+さらに、docker composeをインストールし、docker composeコマンドを叩くと、docker buildxのバージョンが古くエラーとなる。  
+よって、docker buildxのバージョンアップも行う必要があるため、githubリポジトリからdocker buildxをインストールする。  
+各手順を整理すると以下のとおりとなる。  
+
+- docker（エンジン）のインストール
+```
+
+```
+
+- docker composeのインストール
+```
+```
+
+- docker buildxのインストール
+
+
+**参考資料**  
+- Amazon Linux 2023のリポジトリ一覧
+  https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html
+- docker engine / docker composeのインストール
+  https://sig9.org/blog/2023/08/28/
 
 **2-4) ALB設定**  
 
@@ -786,6 +830,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 これにより、本番環境設定をチームメンバーに共有する。  
 
 </details>
+
 
 
 
