@@ -640,7 +640,7 @@ AWSを使用して、インフラを構築する。
 ![Image](https://github.com/user-attachments/assets/c9140fa4-70f0-4e46-b3a8-e93651b14678)
 
 
-**2) 技術選定理由**  
+**2) インフラ構成図の考え方、技術選定理由**  
 インフラ構成図の考え方、技術選定理由について、以下のとおり述べる。  
 
 **2-1) 全体構成**  
@@ -651,14 +651,51 @@ AWSを使用して、インフラを構築する。
 - Route53を使用して、独自ドメインを設定する。ドメインは「お名前.com」より取得し、アプリ名である「kajimaru」が入るようにする。
 - プライベート内に配置されたEC2, RDSがインターネットへ接続できるようにするため、NATGatewayを使用する。ただし、外部からEC2, RDSへ接続できないよう、インバウンドは許可せずに、アウトバウンドのみ許可する。
 - NATGatewayは1時間単位で料金がかかり、2つのAZに配置するとコストが高くなるため、1つのAZに配置する。
+- ALBはパブリックサブネットに配置し、ALBがHTTPSの終端となる。
+- CloudFrontとS3を使用して、静的コンテンツの配信を高速化して、ユーザービリティの向上を図る。
 
 **2-2) セキュリティ**  
 - ALBにACMをアタッチして、HTTP通信にSSL/TLSを付与する。
 - EC2への接続は、セッションマネージャーとVPCエンドポイントを使用して、踏み台サーバーによるssh接続よりもセキュアな接続とする。
--     
+- Parameter StoreとKey Management Serviceを使用して、.envにDB、Djangoのパスワード等を平文でEC2に保存するのを避け、セキュリティを向上させる。
+- 類似サービスに「Secrets Manager」があり、違いは機密情報の「自動更新の有無」であるが、短期間（1週間程度）の稼働であり、コスト削減の観点から「Parameter Store」を採用する。 
 
 **2-3) 運用・監視**  
+- CloudWatchを使用して、CPU・メモリの使用量、リクエスト数等のメトリクスを監視・検知し、Flow Logsでネットワークの監視・検知を行う。
+- 通知はemailに直接送るのではなく、SNS、Webhookを使用してMattermostで通知する。
+- Mattermostにチームのチャネルがあり、Mattermostでのグループ内通知により問題の共有・対処の迅速化を図る。
 
+
+</details>
+
+<details>
+<summary>6. 通信経路図</summary>
+
+以下のとおり、通信経路図を示す。
+
+**1) 通信経路図**  
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    participant User as ユーザー（User）
+    participant CF as CloudFront<br/>（HTTPS終端 / ACM）
+    participant ALB as ALB<br/>（Public Subnet）
+    participant EC2 as EC2<br/>（Nginx / Gunicorn / Private Subnet）
+    participant RDS as RDS MySQL<br/>（Private Subnet）
+
+    User->>CF: HTTPS リクエスト（Public）
+    CF->>ALB: HTTPS 転送（Public）
+    ALB->>EC2: HTTP/HTTPS（内部通信 / Private）
+    EC2->>RDS: SQL クエリ（Private Subnet）
+    RDS-->>EC2: クエリ結果返却
+    EC2-->>ALB: レスポンス返却（Private）
+    ALB-->>CF: HTTPS レスポンス（Public）
+    CF-->>User: HTTPS レスポンス（Public）
+```
+
+**2) 補足説明**  
 
 
 
@@ -671,6 +708,7 @@ AWSを使用して、インフラを構築する。
 <details>
 <summary>7. デプロイ設定</summary>
 </details>
+
 
 
 
