@@ -691,7 +691,9 @@ sequenceDiagram
 
 <details>
 <summary>6. AWS環境構築、デプロイ</summary>
+
 <br>
+
 **1) 作業フロー**  
 以下にAWS環境構築、デプロイまでの作業フローを示す。  
 
@@ -734,7 +736,7 @@ flowchart TB
 **①EC2インスタンス作成**  
 EC2インスタンスを1台作成する。2台目のEC2インスタンスは、1台目のデプロイが完了した後に設定する。  
 EC2のマシンイメージは、AWSに最適化されており、デフォルトでセキュリティが考慮されている「**Amazon Linux2023**」とする。  
-インスタンスタイプは、コスト削減のため、無料枠の「**t2.micro**」とする。
+インスタンスタイプは、コスト削減のため、無料枠の「**t2.micro**」とする。  
 
 **②セッションマネージャーでのEC2接続**  
 
@@ -742,7 +744,7 @@ EC2のマシンイメージは、AWSに最適化されており、デフォル�
 **③Git, Dockerのインストール**  
 セッションマネージャーでEC2に接続し、EC2内にGit, Dockerをインストールする。  
 Gitのインストールの詳細は、以下の記事を参照することとする。  
-https://qiita.com/myaX/items/677cfd8a669d6c7eff80
+https://qiita.com/myaX/items/677cfd8a669d6c7eff80  
 <br>
 GitインストールおよびGitHubへのssh接続が完了した後に、対象のリポジトリをリモート設定する。  
 ```
@@ -753,10 +755,11 @@ git remote set-url origin <新しいURL>
 ```
 
 <br>
+
 次にDockerをインストールする。  
 Amazon Linux2023のリポジトリには、「docker（エンジン）」はあるものの、「docker compose」はなく、「docker（エンジン）」のみのインストールでは、docker composeコマンドがエラーとなる。  
 そのため、docker composeのGitHubリポジトリからインストールする。  
-さらに、docker composeをインストールし、docker composeコマンドを叩くと、docker buildxのバージョンが古くエラーとなる。  
+さらに、docker composeをインストールし、docker compose up --buildコマンドを叩くと、docker buildxのバージョンが古くエラーとなる。  
 よって、docker buildxのバージョンアップも行う必要があるため、githubリポジトリからdocker buildxをインストールする。  
 各手順を整理すると以下のとおりとなる。  
 
@@ -764,6 +767,9 @@ Amazon Linux2023のリポジトリには、「docker（エンジン）」はあ�
   
 ```
 sudo dnf -y install docker
+```
+```
+docker version
 ```
 
 - dockerの自動起動設定
@@ -773,6 +779,7 @@ systemctl enable --now docker
 ```
 
 - docker composeのインストール
+
 docker composeのGitHubリポジトリ（https://github.com/docker/compose/releases）より、現時点（2025/11月時点）での最新バージョンは「v2.40.3」である。  
 Amazon Linux 2023の「docker」（https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html）より、バージョンは「25.0.8-1」であり、docker engineとdocker composeの互換表（https://docs.docker.jp/compose/compose-file/compose-versioning.html#compose-file-compatibility-matrix）を確認すると、docker Engine「19.03.0+」に対して、docker compose仕様は「3.8」であり、これらの関係から、互換性はあると考えられる。  
 よって、最新版の「v2.40.3」をインストールする。  
@@ -799,9 +806,34 @@ curl -SL https://github.com/docker/compose/releases/download/v2.40.3/docker-comp
 ```
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 ```
+```
+docker compose version
+```
 
 - docker buildxのインストール
+
+docker buildxのGitHubリポジトリ（https://github.com/docker/buildx）より、Linuxでの保存先は「$HOME/.docker/cli-plugins」が推奨されている。  
+よって、mkdir -p ~/.docker/cli-pluginsとして保存ディレクトリを作成する。  
+また、「DockerでBuildxを使用するには、Dockerエンジン19.03以降が必要です。」と記載がある。  
+Amazon Linux 2023リポジトリより、dockerのバージョンは「25.0.8-1」と記載があるため、バージョンの問題はないと考えられる。  
+念のため、「docker version」でバージョンを確認する。  
+buldxの最新バージョンはv0.30.0（2025/11月時点）であり、こちらをインストールする。  
+OS、アーキテクチャは「Linux」、「X86_64」であるため、これと同じ種類を選択する。  
+見たところx86_64は見当たらないが、別名の「amd64」（=x86_64）はあるため、これをインストールする。  
+インストール手順は以下のとおりである。
+
 ```
+mkdir -p ~/.docker/cli-plugins
+```
+```
+curl -SL https://github.com/docker/buildx/releases/download/v0.30.0/buildx-v0.30.0.linux-amd64 \
+-o ~/.docker/cli-plugins/docker-buildx
+```
+```
+chmod +x ~/.docker/cli-plugins/docker-buildx
+```
+```
+docker buildx version
 ```
 
 **参考資料**  
@@ -866,6 +898,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 これにより、本番環境設定をチームメンバーに共有する。  
 
 </details>
+
 
 
 
