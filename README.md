@@ -728,6 +728,10 @@ flowchart TB
 
 
 **2-3) EC2設定**  
+**①EC2インスタンス作成**  
+
+
+**②ソフト、パッケージ（Git, Docker）のインストール**  
 
 
 **2-4) ALB設定**  
@@ -742,7 +746,29 @@ RDS MySQLはコスト削減のため「無料利用枠」を指定し、イン�
 
 **②EC2からRDSへの接続確認**  
 RDS MySQLが作成できた後に、セッションマネージャーでEC2内にアクセスし、EC2からRDS MySQLの接続確認を行う。  
-EC2Amazon Linux
+EC2のマシンイメージは「Amazon Linux2023」であるが、Amazon Linux2023のリポジトリには、MySQL本家のクライアント（mysql）がない（2025年11月時点）。  
+そのため、AWS公式ドキュメントより推奨の「MariaDBクライアント」をインストールして、RDS MySQLに接続する。  
+以下に接続確認のコマンドを示す。  
+
+- インストール
+```
+sudo dnf install mariadb105
+```
+
+- バージョン確認  
+```
+mysql -V
+```
+
+- 接続
+```
+mysql -h エンドポイント -u admin（もしくは設定したユーザー名） -p
+```
+
+**参考資料**  
+https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/UserGuide/mysql-install-cli.html  
+
+<br>
 
 **2-6) Git pull**  
 GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチをpull（初回はclone）する。  
@@ -760,6 +786,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 これにより、本番環境設定をチームメンバーに共有する。  
 
 </details>
+
 
 
 
