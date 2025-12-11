@@ -704,11 +704,30 @@ sequenceDiagram
 
 <details>
 <summary>6. AWS環境構築</summary>
+<br>
+**1) 作業フロー**  
+
+```mermaid
+flowchart TB
+    classDef left text-align:left;
+    A[1. ネットワーク設定<br/>①VPC作成<br/>②サブネット作成<br/>③IGW作成<br/>④NATGW作成<br/>⑤ルートテーブル作成<br/>⑥VPCエンドポイント作成]:::left --> 
+    B[2. セキュリティ、権限設定<br/>①SG作成<br/>②IAMロール作成]:::left
+    B --> C[3. EC2設定<br/>①EC2インスタンス作成<br/>②ソフト、パッケージ（Git, Docker）のインストール]:::left
+    C --> D[4. ALB設定<br/>①SG、TG作成<br/>②ALB作成<br/>③Route53に関連付け]:::left
+    D --> E[5. RDS設定<br/>①RDS MySQL作成<br/>②EC2からRDSへの疎通確認]:::left
+    E --> F[6. Git pull<br/>①リモートリポジトリからpull]:::left
+    F --> G[7. 本番環境設定（EC2内での作業）<br/>①Docker, Django, Nginxの本番用設定<br/>②Docker compose起動<br/>③ヘルスチェック、疎通確認（デプロイ完了）]:::left
+    G --> H[8. Git push<br/>①リモートリポジトリへpush]:::left
+
+```
+
+
 </details>
 
 <details>
 <summary>7. デプロイ設定</summary>
 </details>
+
 
 
 
