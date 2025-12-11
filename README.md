@@ -696,8 +696,9 @@ sequenceDiagram
 ```
 
 **2) 補足説明**  
-
-
+- 静的ファイルはCloudFront + S3より直接レスポンスし、内部のEC2からはレスポンスしない。静的ファイルのリクエストは、CloudFrontがHTTPSの終端となる。
+- Form送信等の動的なリクエストでは、ALBがHTTPSの終端となり、EC2・RDS MySQLの内部通信を経た後に、レスポンスが送られる。
+- Nginxはリバースプロキシとして機能する。
 
 </details>
 
@@ -708,6 +709,7 @@ sequenceDiagram
 <details>
 <summary>7. デプロイ設定</summary>
 </details>
+
 
 
 
