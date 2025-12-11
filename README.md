@@ -20,7 +20,7 @@
 - メンバー：4名（フロントエンド1名、バックエンド2名、インフラ1名）
 
 ## 自分の担当
-「インフラ」担当として、ディレクトリ・ファイルの構成検討、Dockerによる開発環境構築、ドメイン取得、AWSによる本番環境のデプロイを行った。  
+「インフラ」担当として、ディレクトリ・ファイルの構成検討、Dockerによる開発環境構築、ドメイン取得、AWSによる環境構築、デプロイを行った。  
 自身のインフラ作業の詳細は、後述する「[インフラ設計の詳細](#インフラ設計の詳細)」にて示す。  
 概要として、作成したインフラ構成図を以下に示す。  
 
@@ -780,8 +780,8 @@ systemctl enable --now docker
 
 - docker composeのインストール
 
-docker composeのGitHubリポジトリ（https://github.com/docker/compose/releases）より、現時点（2025/11月時点）での最新バージョンは「v2.40.3」である。  
-Amazon Linux 2023の「docker」（https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html）より、バージョンは「25.0.8-1」であり、docker engineとdocker composeの互換表（https://docs.docker.jp/compose/compose-file/compose-versioning.html#compose-file-compatibility-matrix）を確認すると、docker Engine「19.03.0+」に対して、docker compose仕様は「3.8」であり、これらの関係から、互換性はあると考えられる。  
+docker composeのGitHubリポジトリより、現時点（2025/11月時点）での最新バージョンは「v2.40.3」である。  
+Amazon Linux 2023の「docker」より、バージョンは「25.0.8-1」であり、docker engineとdocker composeの互換表を確認すると、docker Engine「19.03.0+」に対して、docker compose仕様は「3.8」であり、これらの関係から、互換性はあると考えられる。  
 よって、最新版の「v2.40.3」をインストールする。  
 「v2.40.3」のAssetsを確認すると、OS、アーキテクチャに応じてインストールするものが決まるため、EC2のOS、アーキテクチャを確認する。  
 uname, uname -mとコマンドを叩くと「Linux」、「X86_64」が表示される。  
@@ -800,6 +800,7 @@ uname
 uname -m
 ```
 
+OS、アーキテクチャを確認後に、インストールを行う。
 ```
 curl -SL https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
 ```
@@ -812,10 +813,10 @@ docker compose version
 
 - docker buildxのインストール
 
-docker buildxのGitHubリポジトリ（https://github.com/docker/buildx）より、Linuxでの保存先は「$HOME/.docker/cli-plugins」が推奨されている。  
+docker buildxのGitHubリポジトリより、Linuxでの保存先は「$HOME/.docker/cli-plugins」が推奨されている。  
 よって、mkdir -p ~/.docker/cli-pluginsとして保存ディレクトリを作成する。  
 また、「DockerでBuildxを使用するには、Dockerエンジン19.03以降が必要です。」と記載がある。  
-Amazon Linux 2023リポジトリより、dockerのバージョンは「25.0.8-1」と記載があるため、バージョンの問題はないと考えられる。  
+Amazon Linux 2023リポジトリより、dockerのバージョンは「25.0.8-1」と記載があるため、19.03以上であるため、バージョンの問題はないと考えられる。  
 念のため、「docker version」でバージョンを確認する。  
 buldxの最新バージョンはv0.30.0（2025/11月時点）であり、こちらをインストールする。  
 OS、アーキテクチャは「Linux」、「X86_64」であるため、これと同じ種類を選択する。  
@@ -837,13 +838,13 @@ docker buildx version
 ```
 
 **参考資料**  
-- Amazon Linux 2023のリポジトリ一覧
+- Amazon Linux 2023のリポジトリ一覧  
 https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html
-- docker engine / docker composeのインストール
+- docker engine / docker composeのインストール  
 https://sig9.org/blog/2023/08/28/
-- docker composeのGitHubリポジトリ
+- docker composeのGitHubリポジトリ  
 https://github.com/docker/compose/releases
-- docker engineとdocker composeの互換表
+- docker engineとdocker composeの互換表  
 https://docs.docker.jp/compose/compose-file/compose-versioning.html#compose-file-compatibility-matrix
 
 **2-4) ALB設定**  
@@ -898,6 +899,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 これにより、本番環境設定をチームメンバーに共有する。  
 
 </details>
+
 
 
 
