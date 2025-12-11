@@ -494,26 +494,9 @@ http://localhost:8000/ or http://127.0.0.1:8000/
 <br>
 
 ## インフラ設計の詳細
-以降より、自身が担当したインフラ設計の詳細を述べる。
+以降より、自身が担当したインフラ設計の詳細を述べる。  
 
-<details>
-<summary>1. 作業フロー</summary>
-次のとおり、本インフラ設計の作業フローを示す。  
-
-```mermaid
-flowchart TB
-    A[1. ディレクトリ・ファイル構成の検討<br/>・Djnago設定ファイルの分離（開発・本番）<br/>] --> B[2. インフラ技術の選定<br/><br/>]
-    B --> C[3. Dockerによる開発環境構築<br/><br/>]
-    C --> D[4. インフラ構成図の検討<br/><br/>]
-    D --> E[5. ドメイン取得<br/><br/>]
-    E --> F[6. AWS環境構築<br/><br/>]
-    F --> G[7. デプロイ作業<br/><br/>]
-```
-
-</details>
-
-<details>
-<summary>2. ディレクトリ・ファイル構成の検討</summary>
+<summary>1. ディレクトリ・ファイル構成の検討</summary>
 
 
 **1) Djangoの設定ファイルの切り分け**  
@@ -579,13 +562,13 @@ Docker compose, Dockerfileについても、開発環境と本番環境で切り
 </details>
 
 <details>
-<summary>3. インフラ技術の選定</summary>
+<summary>2. インフラ技術の選定</summary>
 
 前述の[使用技術](#使用技術)の「インフラ」より、インフラ構造は、Web3層構造（Webサーバー、アプリケーションサーバー、データベースサーバー）とし、各層を独立させることで、「開発性・保守性」を向上させるものとした。  
 以下に選定したインフラ技術を示す。  
 
 **1) クラウド**  
-自身の学習目的および将来的な実務での活用も考慮し、全世界のクラウド市場シェア率がTopである**AWS**を選定した。  
+自身の学習目的および将来的な実務での活用を考慮し、全世界のクラウド市場シェア率がTopである**AWS**を選定した。  
 
 **2) Webサーバー**  
 前述の[使用技術](#使用技術)の「インフラ」より、軽量コンテンツに向き、静的ファイルの配信が非常に高速な**Nginx**とした。
@@ -600,7 +583,7 @@ Docker compose, Dockerfileについても、開発環境と本番環境で切り
 </details>
 
 <details>
-<summary>4. Dockerによる開発環境構築</summary>
+<summary>3. Dockerによる開発環境構築</summary>
 
 **1) コンテナ**  
 開発環境で必要なコンテナは、DBサーバーである**MySQL**およびアプリケーションサーバーである**Django**(Python)である。  
@@ -630,7 +613,7 @@ Django, Gunicorn, Bootstrap, mysqlclient等をインストールする。
 </details>
 
 <details>
-<summary>5. インフラ構成図の検討</summary>
+<summary>4. インフラ構成図の検討</summary>
 
 
 **1) インフラ構成図**  
@@ -669,7 +652,7 @@ AWSを使用して、インフラを構築する。
 </details>
 
 <details>
-<summary>6. 通信経路図</summary>
+<summary>5. 通信経路図</summary>
 
 以下のとおり、通信経路図を示す。
 
@@ -703,9 +686,10 @@ sequenceDiagram
 </details>
 
 <details>
-<summary>6. AWS環境構築</summary>
+<summary>6. AWS環境構築、デプロイ</summary>
 <br>
 **1) 作業フロー**  
+以下にAWS環境構築、デプロイまでの作業フローを示す。  
 
 ```mermaid
 flowchart TB
@@ -716,17 +700,45 @@ flowchart TB
     C --> D[4. ALB設定<br/>①SG、TG作成<br/>②ALB作成<br/>③Route53に関連付け]:::left
     D --> E[5. RDS設定<br/>①RDS MySQL作成<br/>②EC2からRDSへの疎通確認]:::left
     E --> F[6. Git pull<br/>①リモートリポジトリからpull]:::left
-    F --> G[7. 本番環境設定（EC2内での作業）<br/>①Docker, Django, Nginxの本番用設定<br/>②Docker compose起動<br/>③ヘルスチェック、疎通確認（デプロイ完了）]:::left
+    F --> G[7. 本番環境設定（EC2内での作業）<br/>①Dockerの本番用設定<br/>②Djangoの本番用設定<br/>③Nginxの本番用設定<br/>④Docker compose起動（デプロイ）<br/>⑤ヘルスチェック、疎通確認]:::left
     G --> H[8. Git push<br/>①リモートリポジトリへpush]:::left
 
 ```
 
+**2) 各作業の詳細**  
+前述の作業フローにおける各作業の詳細を次のとおり示す。  
+
+**2-1) ネットワーク設定**  
+**①VPC作成**  
+
+
+**2-2) セキュリティ、権限設定**  
+
+
+**2-3) EC2設定**  
+
+
+**2-4) ALB設定**  
+
+
+**2-5) RDS設定**  
+
+
+**2-6) Git pull**  
+GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチをpull（初回はclone）する。  
+ブランチ戦略は「git flow」に準じ、developブランチからreleaseブランチを切って、本番環境を設定する。  
+
+**2-7) 本番環境設定（EC2内での作業）**  
+
+
+**2-8) Git push**  
+本番環境設定が完了し、デプロイが確認できた後に、GitHubのリモートリポジトリへpushする。  
+git flowに準じ、releaseブランチからmainブランチへpushする。  
+これにより、本番環境設定をチームメンバーに共有する。  
 
 </details>
 
-<details>
-<summary>7. デプロイ設定</summary>
-</details>
+
 
 
 
