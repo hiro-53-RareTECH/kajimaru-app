@@ -790,6 +790,7 @@ NATGWは、1時間単位で料金がかかり、2つのパブリックサブネ�
 
 **2-3) EC2設定**  
 
+
 **①SG作成**
 EC2インスタンスを作成する前にSG（セキュリティグループ）を作成する。  
 EC2は、後述するSSM（セッションマネージャー）により接続するため、インバウンドルールを設定することなく、セキュアに接続する。  
@@ -809,13 +810,13 @@ SGは前述したSGを適用する。
 | kajimaru-ec2-02 | 04-private |
 
 
-**②SSMでのEC2接続**  
+**③SSMでのEC2接続**  
 
-**②-1) SG作成**  
+**③-1) SG作成**  
 後述のVPCエンドポイントを作成する前に、VPCにアタッチするSGを作成する。  
 EC2からSSMにHTTPS（443）で接続するため、インバウンドルールは「EC2のSG」とし、アウトバウンドルールは「すべてのトラフィック（0.0.0.0）」とする。  
 
-**②-2) VPCエンドポイント作成**  
+**③-2) VPCエンドポイント作成**  
 プライベートサブネット内に位置するEC2に接続する（EC2からSSMに通信する）ために、VPCエンドポイントを作成する。  
 VPCエンドポイントは、以下に示す公式ドキュメントより、以下の3つとする。  
 
@@ -838,15 +839,15 @@ com.amazonaws.ap-northeast-1.ssmmessages
 ```
 
 **参考資料**  
-SSM、EC2接続のためのVPCエンドポイント設定
+SSM、EC2接続のためのVPCエンドポイント設定  
 https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-prerequisites.html
 
 
 
-**②-3) EC2接続確認**  
+**③-3) EC2接続確認**  
 作成したEC2インスタンスを起動し、SSM（セッションマネージャー）でEC2へ接続する。  
 
-**③Git, Dockerのインストール**  
+**④Git, Dockerのインストール**  
 SSM（セッションマネージャー）でEC2に接続し、EC2内にGit, Dockerをインストールする。  
 Gitのインストールの詳細は、以下の記事を参照することとする。  
 https://qiita.com/myaX/items/677cfd8a669d6c7eff80  
@@ -1043,6 +1044,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
