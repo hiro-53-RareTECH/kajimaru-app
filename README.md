@@ -696,6 +696,7 @@ sequenceDiagram
 **1) 作業フロー**  
 以下にAWS環境構築、デプロイまでの作業フローを示す。  
 
+
 ```mermaid
 flowchart TB
     classDef left text-align:left;
@@ -710,6 +711,7 @@ flowchart TB
     H --> I[9. Git push<br/>①リモートリポジトリへpush]:::left
 
 ```
+
 
 **2) 各作業の詳細**  
 前述の作業フローにおける各作業の詳細を次のとおり示す。  
@@ -995,8 +997,9 @@ sequenceDiagram
 
 **③TG作成**
 
+**④ACM作成**
 
-**④ALB作成**
+**⑤ALB作成**
 
 
 **⑤Route53に関連付け**
@@ -1081,6 +1084,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
