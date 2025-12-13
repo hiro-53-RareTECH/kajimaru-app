@@ -813,18 +813,12 @@ SGは前述したSGを適用する。
 **③SSMでのEC2接続**  
 
 **③-1) SG作成**  
-後述のVPCエンドポイントを作成する前に、VPCにアタッチするSGを作成する。  
+後述のVPCエンドポイントを作成する前に、VPCエンドポイントにアタッチするSGを作成する。  
 EC2からSSMにHTTPS（443）で接続するため、インバウンドルールは「EC2のSG」とし、アウトバウンドルールは「すべてのトラフィック（0.0.0.0）」とする。  
 
 **③-2) VPCエンドポイント作成**  
 プライベートサブネット内に位置するEC2に接続する（EC2からSSMに通信する）ために、VPCエンドポイントを作成する。  
-VPCエンドポイントは、以下に示す公式ドキュメントより、以下の3つとする。  
-
-- SSM API（制御プレーン）
-
-```
-com.amazonaws.ap-northeast-1.ec2messages
-```
+VPCエンドポイントは、以下に示す参考資料の公式ドキュメントより、以下の3つとする。  
 
 - EC2 Messages（管理通信）
 
@@ -832,11 +826,27 @@ com.amazonaws.ap-northeast-1.ec2messages
 com.amazonaws.ap-northeast-1.ec2messages
 ```
 
+- SSM API（制御プレーン）
+
+```
+com.amazonaws.ap-northeast-1.ssm
+```
+
 - SSM Messages（Session Manager 用）
 
 ```
 com.amazonaws.ap-northeast-1.ssmmessages
 ```
+
+| 名前 | サービス | AZ | サブネットID |
+| --- | --- | --- | --- |
+| kajimaru-vpc-01 | com.amazonaws.ap-northeast-1.ec2messages | ap-northeast-1a | 03-private |
+|  |  | ap-northeast-1c | 04-private |
+| kajimaru-vpc-02 | com.amazonaws.ap-northeast-1.ssm | ap-northeast-1a | 03-private |
+|  |  | ap-northeast-1c | 04-private |
+| kajimaru-vpc-03 | com.amazonaws.ap-northeast-1.ssmmessages | ap-northeast-1a | 03-private |
+|  |  | ap-northeast-1c | 04-private |
+
 
 **参考資料**  
 SSM、EC2接続のためのVPCエンドポイント設定  
@@ -1044,6 +1054,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
