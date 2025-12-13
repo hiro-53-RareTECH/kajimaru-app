@@ -774,21 +774,7 @@ NATGWは、1時間単位で料金がかかり、2つのパブリックサブネ�
 |  | プライベートサブネット | サブネットID | 05-private |
 
 
-
-
-
-**2-2) セキュリティ、権限設定**  
-
-
-**①SG作成**
-
-
-
-**②IAMロール作成**
-
-
-
-**2-3) EC2設定**  
+**2-2) EC2設定**  
 
 
 **①SG作成**
@@ -810,7 +796,16 @@ SGは前述したSGを適用する。
 | kajimaru-ec2-02 | 04-private |
 
 
-**③SSMでのEC2接続**  
+**③IAMロールの作成**  
+IAMロールとは「誰が・どのサービスを・どこまで」アクセスできるかを制御できる仕組みである。  
+作成したEC2に「AmazonSSMManagedInstanceCore」という「AWS Systems Manager サービスコア機能を有効にする Amazon EC2 ロールのポリシー」をアタッチする。  
+これにより、アタッチしたEC2がSSMと通信できる。  
+
+**参考資料**  
+EC2作成、IAMロールアタッチ、VPCエンドポイント作成  
+https://qiita.com/free-honda/items/9740ef602f072ab2b88c
+
+**2-3) VPCエンドポイント作成、EC2への接続**  
 
 **③-1) SG作成**  
 後述のVPCエンドポイントを作成する前に、VPCエンドポイントにアタッチするSGを作成する。  
@@ -850,14 +845,14 @@ com.amazonaws.ap-northeast-1.ssmmessages
 
 **参考資料**  
 SSM、EC2接続のためのVPCエンドポイント設定  
-https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-prerequisites.html
-
-
+https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-prerequisites.html  
 
 **③-3) EC2接続確認**  
 作成したEC2インスタンスを起動し、SSM（セッションマネージャー）でEC2へ接続する。  
+注）EC2へのIAMロールアタッチ、VPCエンドポイント作成した直後は繋がらない場合がある（タイムラグがある）ため、時間をおいて接続確認することに留意する。  
 
-**④Git, Dockerのインストール**  
+
+**2-4) EC2内でのGit, Dockerのインストール**  
 SSM（セッションマネージャー）でEC2に接続し、EC2内にGit, Dockerをインストールする。  
 Gitのインストールの詳細は、以下の記事を参照することとする。  
 https://qiita.com/myaX/items/677cfd8a669d6c7eff80  
@@ -1054,6 +1049,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
