@@ -961,14 +961,45 @@ https://docs.docker.jp/compose/compose-file/compose-versioning.html#compose-file
 
 **2-4) ALB設定**  
 
+**①各SG設定、ALBの通信経路**  
+以下に各SG設定、ALBの通信経路を示す。  
+クライアントからの通信は、ALBがHTTPSの終端となる。  
 
-**①SG、TG作成**
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User(Internet)
+    participant ALB as ALB (Public Subnet)<br/>SG: sg-alb
+    participant EC2 as EC2 (Private Subnet)<br/>Nginx + Gunicorn<br/>SG: sg-ec2
+    participant RDS as RDS MySQL (Private Subnet)<br/>SG: sg-rds
+
+    %% ===== Request =====
+    User->>ALB: HTTPS 443 (Request)
+    Note right of ALB: sg-alb インバウンド HTTPS(443) すべての通信(0.0.0.0)
+
+    ALB->>EC2: HTTP 80 (Forward)
+    Note right of EC2: sg-ec2 インバウンド HTTP(80) ALBのセキュリティグループ
+
+    EC2->>RDS: MySQL 3306 (Query)
+    Note right of RDS: sg-rds インバウンド MySQL(3306) EC2のセキュリティグループ
+
+    %% ===== Response =====
+    RDS-->>EC2: MySQL 3306 (Result)
+    EC2-->>ALB: HTTP 80 (App Response)
+    ALB-->>User: HTTPS 443 (Response)
+```
 
 
-**②ALB作成**
+
+**②SG作成**
+
+**③TG作成**
 
 
-**③Route53に関連付け**
+**④ALB作成**
+
+
+**⑤Route53に関連付け**
 
 
 
@@ -1050,6 +1081,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
