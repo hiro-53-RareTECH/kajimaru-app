@@ -491,7 +491,6 @@ http://localhost:8000/ or http://127.0.0.1:8000/
 <img width="auto" height="auto" alt="Image" src="https://github.com/user-attachments/assets/db0ab465-c744-4f87-8bbd-0e018c0beaa2" />
 </details>
 
-<br>
 
 ## インフラ設計の詳細
 以降より、自身が担当したインフラ設計の詳細を述べる。  
@@ -760,6 +759,8 @@ NATGWは、1時間単位で料金がかかり、2つのパブリックサブネ�
 |  | 外部 | 送信先 | 0.0.0.0/0 |
 |  |  | ターゲット | kajimaru-IGW |
 | サブネット | パブリックサブネット | サブネットID | 01-public |
+|  | パブリックサブネット | サブネットID | 02-public |
+
 
 - NATGWとEC2, RDSサブネットのルーティング設定
 
@@ -1049,6 +1050,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
