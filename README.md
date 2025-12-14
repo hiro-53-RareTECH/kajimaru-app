@@ -38,6 +38,8 @@
 ## 使用技術
 <img width="auto" height="auto" alt="Image" src="https://github.com/user-attachments/assets/2114c333-c040-4f7d-abb7-367f349c0fd0" />
 
+<br/>
+
 | **カテゴリ** | **技術** |
 | --- | --- |
 | フロントエンド | HTML / CSS / JavaScript / Bootstrap 25.2 |
