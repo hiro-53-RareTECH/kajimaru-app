@@ -963,7 +963,27 @@ https://github.com/docker/compose/releases
 - docker engineとdocker composeの互換表  
 https://docs.docker.jp/compose/compose-file/compose-versioning.html#compose-file-compatibility-matrix
 
-**2-4) ALB設定**  
+**2-4) Route53、ACM設定**  
+
+**①お名前ドットコムより独自ドメイン取得**  
+お名前ドットコムより、独自ドメインを取得する。  
+「kajimaru.com」でドメインを取得した。  
+
+**②Route53のホストゾーン作成、NSレコードの取得**  
+取得したドメイン「kajimaru.com」をRoute53のホストゾーンに登録する。  
+登録後にAWSのNSレコードが作成されるため、このNSレコードをお名前ドットコムの「ネームサーバー設定」、「その他の設定」にて登録する。  
+
+**③ACM作成、Route53に登録**  
+ACMにてSSL/TLSの証明書を発行する。  
+「kajimaru.com」および「*.kajimaru.com」を証明書としてリクエストし、CNAMEを取得する。  
+その後に「Route 53 でレコードを作成」を押下し、先ほど作成したRoute53のホストゾーンにCNAMEを登録する。  
+Aレコードの登録は、後述するALBをエイリアスとして登録するため、ALB作成後に登録する。  
+
+**参考資料**  
+https://qiita.com/free-honda/items/8fb5124ae36616d64dd1  
+https://www.onamae.com/column/domain/46/  
+
+**2-5) ALB設定**  
 
 **①各SG設定、ALBの通信経路**  
 以下に各SG設定、ALBの通信経路を示す。  
@@ -993,20 +1013,31 @@ sequenceDiagram
     ALB-->>User: HTTPS 443 (Response)
 ```
 
+**②SG作成**  
+ALBに適用するSGは、クライアントからのリクエストを受信するため、インバウンドはHTTPS（443）、すべての通信（0.0.0.0）とする。  
+EC2に適用するSGは、前述した「EC2の設定」で作成したものを修正して作成する。  
+インバウンドはALBからの通信のみを許可したいため、ALBのSGを対象とし、プロトコルはNginxのポート番号である「HTTP, 80」とする。  
+RDSに適用するSGは、EC2からの通信のみを許可したいため、EC2のSGを対象とし、プロトコルはMySQLのポート番号である「3306」とする。  
+以下に、設定したSGの一覧を示す。  
+
+| 名前 | インバウンド（プロトコル／ポート番号／ソース） | アウトバウンド |
+| --- | --- | --- |
+| kajimaru-ALB-SG | HTTPS / 443 / 0.0.0.0/0 | 0.0.0.0/0 |
+| kajimaru-ec2-SG | HTTP / 80 / kajimaru-ALB-SG | 0.0.0.0/0 |
+| kajimaru-DB-SG | MYSQL/Aurora / 3306 / kajimaru-ec2-SG | 0.0.0.0/0 |
 
 
-**②SG作成**
+**③TG作成**  
+ALBのTGは、EC2とし、作成したEC2インスタンスが対象となる。  
+EC2はHTTPの80番ポートでリッスンしているため、ターゲットも同様に「HTTP, 80」とする。  
 
-**③TG作成**
+**④ALB作成**  
+作成するALBの名前は「kajimaru-ALB」とし、SG、TG、ACMを設定する。  
+前述したSG, TGを適用し、事前に作成したACMの証明書をALBにアタッチする。  
 
-**④ACM作成**
-
-**⑤ALB作成**
-
-
-**⑤Route53に関連付け**
-
-
+**⑤Route53に関連付け**  
+Route53のホストゾーンのAレコードのエイリアスにALBを指定し、Route53とALBを紐づける。  
+Aレコードがホストゾーンに登録されていることを確認する。  
 
 **2-5) RDS設定**  
 **①RDS MySQL作成**  
@@ -1086,6 +1117,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
