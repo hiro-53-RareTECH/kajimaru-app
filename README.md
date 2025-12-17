@@ -1072,23 +1072,55 @@ https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/UserGuide/mysql-install-cli.h
 
 <br>
 
+**2-7) Parameter Store / KMSによる機密情報設定**  
+機密情報は.envに平文で保存するのを避け、Parameter Store / KMSにより暗号化して保存する。  
+暗号化したい機密情報をキーバリュー形式でParameter Store / KMSに保存し、呼び出しの際は、ssmクライアントを使用して、キーから暗号化したバリューを呼び出す。  
+種類は「SecureString」、データ型は「text」とする。  
+ソースコードを以下のとおり示す。  
+
+```
+import boto3
+
+# Parameter Store／KMSから機密情報の取得
+def get_ssm(name):
+    ssm = boto3.client('ssm', 'ap-northeast-1')
+    return ssm.get_parameter(Name=name, WithDecryption=True)['Parameter']['Value']
+
+# 【本番用に修正】DjangoのSECRET_KEY
+SECRET_KEY = get_ssm(os.getenv('DJANGO_SECRET_KEY'))
+
+# 【本番用に修正】DBの機密情報
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': get_ssm(os.getenv('MYSQL_DATABASE')),
+        'USER': get_ssm(os.getenv('MYSQL_USER')),
+        'PASSWORD': get_ssm(os.getenv('MYSQL_PASSWORD')),
+        'HOST': get_ssm(os.getenv('MYSQL_HOST')),
+        'PORT': '3306'
+    }
+}
+```
+
 **2-6) Git pull**  
 GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチをpull（初回はclone）する。  
 ブランチ戦略は「git flow」に準じ、developブランチからreleaseブランチを切って、本番環境を設定する。  
 
-**2-7) 本番環境設定（EC2内での作業）**  
+**2-7) 本番環境設定**  
 
-**①Dockerの本番用設定**
+**①Dockerfile, docker-compose**
 
-**②Djangoの本番用設定**
+**②Django, gunicorn**
 
 
-**③Nginxの本番用設定**
+**③Nginx**
 
 **④Docker compose起動（デプロイ）**
 
 
 **⑤ヘルスチェック、疎通確認**
+
+
 
 
 **2-8) EC2の複製**  
@@ -1117,6 +1149,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
