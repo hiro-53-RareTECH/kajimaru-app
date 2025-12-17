@@ -1039,7 +1039,7 @@ EC2はHTTPの80番ポートでリッスンしているため、ターゲット�
 Route53のホストゾーンのAレコードのエイリアスにALBを指定し、Route53とALBを紐づける。  
 Aレコードがホストゾーンに登録されていることを確認する。  
 
-**2-5) RDS設定**  
+**2-6) RDS設定**  
 **①RDS MySQL作成**  
 RDS MySQLのメジャーバージョンは、標準サポートがある**8.4**とした。  
 **8.0**は標準サポート期限が「2026年7月31日」であり、実務での長期運用を想定した場合に避けたほうがいいと考えた。  
@@ -1076,7 +1076,8 @@ https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/UserGuide/mysql-install-cli.h
 機密情報は.envに平文で保存するのを避け、Parameter Store / KMSにより暗号化して保存する。  
 暗号化したい機密情報をキーバリュー形式でParameter Store / KMSに保存し、呼び出しの際は、ssmクライアントを使用して、キーから暗号化したバリューを呼び出す。  
 種類は「SecureString」、データ型は「text」とする。  
-ソースコードを以下のとおり示す。  
+Parameter Store / KMSから呼び出す際のソースコードを以下のとおり抜粋して示す。  
+なお、修正ファイルはDjangoの本番用設定ファイルである「prod.py」である。  
 
 ```
 import boto3
@@ -1102,11 +1103,12 @@ DATABASES = {
 }
 ```
 
-**2-6) Git pull**  
-GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチをpull（初回はclone）する。  
-ブランチ戦略は「git flow」に準じ、developブランチからreleaseブランチを切って、本番環境を設定する。  
+**2-8) CloudFront + S3による静的コンテンツ配信設定**  
 
-**2-7) 本番環境設定**  
+
+
+
+**2-9) 本番環境設定**  
 
 **①Dockerfile, docker-compose**
 
@@ -1115,40 +1117,50 @@ GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチ�
 
 **③Nginx**
 
-**④Docker compose起動（デプロイ）**
+**2-10) デプロイ**  
+
+**①Git pull**  
+GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチをpull（初回はclone）する。  
+ブランチ戦略は「git flow」に準じ、developブランチからreleaseブランチを切って、本番環境を設定する。  
+
+**②Docker composeによる起動**
+「docker compose up --build」を実行し、コンテナを立ち上げる。  
+
+**③ヘルスチェック、疎通確認**
+ALBおよびnginxのヘルスチェックが正常か否か確認する。  
+正常であれば、200番のステータスコードがレスポンスされる。  
+
+**2-10) CloudWatch, Flowlogsによる監視・検知、SNS, Lambdaによる通知設定**  
 
 
-**⑤ヘルスチェック、疎通確認**
 
-
-
-
-**2-8) EC2の複製**  
-
+**2-11) EC2の複製**  
 
 **①AMI作成**
-
-
+既に作成したEC2と同じEC2を複製するために、「Amazon マシンイメージ (AMI)」を作成する。  
 
 **②EC2インスタンス作成**
+EC2インスタンス起動画面から、作成したAMIを選択し、EC2インスタンスを複製する。  
+サブネット名は「04-private」、AZは「ap-northeast-1c」とする。  
+SGは、既に1つ目のEC2に適用しているSGと同様とする。  
 
-
-**③SG, TG再設定**
-
+**③TG再設定**
+ALBのターゲットグループに作成したEC2インスタンスを追加する。  
 
 **④Docker compose起動**
+複製したEC2にSSMでアクセスし、Dockerコンテナを起動する。  
+ヘルスチェックが200番のステータスコードを返すか否か確認し、ALBのリソースマップで通信が2台のEC2に分散されているか確認する。  
 
-
-**2-9) Git push**  
+**2-12) Git push**  
 本番環境設定が完了し、デプロイが確認できた後に、GitHubのリモートリポジトリへpushする。  
 git flowに準じ、releaseブランチからmainブランチへpushする。  
-これにより、本番環境設定をチームメンバーに共有する。  
 
 </details>
 
 
 
 -以上-
+
 
 
 
