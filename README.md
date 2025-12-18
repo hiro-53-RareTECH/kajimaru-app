@@ -1057,9 +1057,7 @@ RDS MySQLはコスト削減のため「無料利用枠」を指定し、イン�
 | DBサブネットグループ | kajimaru-subnet-group | プライベートサブネット：05-private, 06-private |
 | セキュリティグループ | kajimaru-DB-SG | 既に作成済みのもの |
 | データベース名 | kajirmaru_db | 作成するデータベース名 |
-| DBパラメータグループ | kajimaru-db-group | RDSの設定ファイルに相当
-character_set_server：utf8mb4
-time_zone：Asia/Tokyo |
+| DBパラメータグループ | kajimaru-db-group | RDSの設定ファイルに相当、character_set_server：utf8mb4、time_zone：Asia/Tokyo |
 | オプショングループ | kajimaru-db-option | RDSの追加機能を有効化するための設定 |
 
 **③EC2からRDSへの接続確認**  
@@ -1176,6 +1174,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
