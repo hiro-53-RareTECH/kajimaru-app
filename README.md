@@ -882,16 +882,28 @@ EC2
  └─ 公開鍵 ───────▶ GitHub（SSH Keys）
 ```
 
-
+以下のコマンドを叩き、sshキーを作成する。  
+-Cはコメント（comment）を付けるオプションであり、運用・識別のためのメタ情報のため、ここでは「ec2-github」とした。  
 
 ```
 ssh-keygen -t ed25519 -C "ec2-github"
 ```
 
+コマンドを叩いた後に「Enter file in which to save the key (/home/ssm-user/.ssh/id_ed25519)」とあり、エンターを押すと「/home/ssm-user/.ssh/id_ed25519」にsshキーが作成される。  
+そのため、以下のコマンドでsshキーが作成されているか確認する。  
 
-Gitのインストールの詳細は、以下の記事を参照することとする。  
-https://qiita.com/myaX/items/677cfd8a669d6c7eff80  
-<br>
+```
+ls -la /home/ssm-user/.ssh/
+```
+
+「id_ed25519」、「id_ed25519.pub」が作成されていれば、sshキーの作成完了である。  
+秘密鍵は「id_ed25519」、公開鍵は「id_ed25519.pub」であるため、後者の公開鍵である「id_ed25519.pub」を自身のGitHubのSettingsに登録する。  
+
+
+
+
+
+
 GitインストールおよびGitHubへのssh接続が完了した後に、対象のリポジトリをリモート設定する。  
 ```
 git remote -v
@@ -1204,6 +1216,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
