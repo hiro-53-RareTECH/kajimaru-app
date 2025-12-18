@@ -898,11 +898,19 @@ ls -la /home/ssm-user/.ssh/
 
 「id_ed25519」、「id_ed25519.pub」が作成されていれば、sshキーの作成完了である。  
 秘密鍵は「id_ed25519」、公開鍵は「id_ed25519.pub」であるため、後者の公開鍵である「id_ed25519.pub」を自身のGitHubのSettingsに登録する。  
+以下のコマンドで公開鍵の中身を確認し、出力されたものをコピーする。  
 
+```
+cat /home/ssm-user/.ssh/id_ed25519.pub
+```
 
+次にGitHubのSettingsの「SSH and GPG keys」にて、公開鍵を新規登録する。  
+Titleは「任意」、KeyTypeは「Authentication Key」（認証キー）、Keyは「先ほど出力されたもの」を登録する。  
 
-
-
+次に以下のコマンドを叩き、ssh接続可能かどうか確認する。  
+```
+ssh -T git@github.com
+```
 
 GitインストールおよびGitHubへのssh接続が完了した後に、対象のリポジトリをリモート設定する。  
 ```
@@ -1216,6 +1224,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
