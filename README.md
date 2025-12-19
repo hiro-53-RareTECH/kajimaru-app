@@ -929,11 +929,7 @@ git remote set-url origin <新しいURL>
 <br>
 
 次にDockerをインストールする。  
-Amazon Linux2023のリポジトリには、「docker（エンジン）」はあるものの、「docker compose」はなく、「docker（エンジン）」のみのインストールでは、docker composeコマンドがエラーとなる。  
-そのため、docker composeのGitHubリポジトリからインストールする。  
-さらに、docker composeをインストールし、docker compose up --buildコマンドを叩くと、docker buildxのバージョンが古くエラーとなる。  
-よって、docker buildxのバージョンアップも行う必要があるため、githubリポジトリからdocker buildxをインストールする。  
-各手順を整理すると以下のとおりとなる。  
+Amazon Linux2023のリポジトリ（https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html）に、「docker（エンジン）」があるため、これをインストールする。  
 
 - docker（エンジン）のインストール
   
@@ -947,21 +943,25 @@ docker version
 - dockerの自動起動設定
 
 ```
-systemctl enable --now docker
+sudo systemctl enable --now docker
 ```
 
 - docker composeのインストール
 
-docker composeのGitHubリポジトリより、現時点（2025/11月時点）での最新バージョンは「v2.40.3」である。  
-Amazon Linux 2023の「docker」より、バージョンは「25.0.8-1」であり、docker engineとdocker composeの互換表を確認すると、docker Engine「19.03.0+」に対して、docker compose仕様は「3.8」であり、これらの関係から、互換性はあると考えられる。  
-よって、最新版の「v2.40.3」をインストールする。  
-「v2.40.3」のAssetsを確認すると、OS、アーキテクチャに応じてインストールするものが決まるため、EC2のOS、アーキテクチャを確認する。  
+docker compose up/down 等に必要な「docker compose」はなく、「docker（エンジン）」のみのインストールでは、docker composeコマンドがエラーとなる。   
+そのため、docker composeのGitHubリポジトリ（https://github.com/docker/compose/releases）より、docker composeのバージョンを指定してインストールする。  
+インストールする前にEC2内のdockerエンジンと互換性のあるdocker composeのバージョンを確認する。  
+EC内のdockerエンジンのバージョンは、Amazon Linux 2023のリポジトリ一覧（https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html）より、バージョンは「25.0.8-1」である。  
+Docker公式ドキュメントの以前のリリースノート（https://docs.docker.com/compose/releases/prior-releases/）より、「2.24.4」バージョンの依存関係のアップグレードに「Dependencies upgrade: bump docker to 25.0.1（依存関係のアップグレード: docker を 25.0.1 にアップグレード）」と記載がある。  
+これは、「内部依存ライブラリのアップグレード記載」であり、必須の Engine バージョン要件という意味ではないが、実運用で不整合が出るリスクを想定し、内部依存ライブラリのアップグレード記載と直近のバージョンをインストールすることとする。  
+よって、docker composeのバージョンは、EC2内のdockerエンジンのバージョン（25.0.8-1）に対し、直近の依存ライブラリのアップグレードバージョン（25.0.1）がある「2.24.4」とする。  
+docker composeのGitHubリポジトリ「v2.24.4」のAssetsを確認すると、OS、アーキテクチャに応じてインストールするものが決まるため、EC2のOS、アーキテクチャを確認する。  
 uname, uname -mとコマンドを叩くと「Linux」、「X86_64」が表示される。  
-よってAssetsより、「Linux」, 「X86_64」に合致するものをインストールする。
+よってAssetsより、「Linux」, 「X86_64」に合致するものをインストールする。  
 インストール手順は以下のとおりである。
 
 ```
-mkdir -p /usr/local/lib/docker/cli-plugins/
+sudo mkdir -p /usr/local/lib/docker/cli-plugins/
 ```
 
 OS、アーキテクチャが「Linux」、「X86_64」であることを確認する。
@@ -972,12 +972,12 @@ uname
 uname -m
 ```
 
-OS、アーキテクチャを確認後に、インストールを行う。
+OS、アーキテクチャを確認後に、作成したディレクトリにダウンロードを行う。
 ```
-curl -SL https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo curl -SL https://github.com/docker/compose/releases/download/v2.24.4/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
 ```
 ```
-chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 ```
 ```
 docker compose version
@@ -985,11 +985,12 @@ docker compose version
 
 - docker buildxのインストール
 
-docker buildxのGitHubリポジトリより、Linuxでの保存先は「$HOME/.docker/cli-plugins」が推奨されている。  
+docker composeをインストールし、docker compose up --buildコマンドを叩くと、docker buildxのバージョンが古くエラーとなる場合がある。  
+そのため、docker buildxのインストールも必要に応じて行う。  
+docker buildxのGitHubリポジトリ（https://github.com/docker/buildx）より、Linuxでの保存先は「$HOME/.docker/cli-plugins」が推奨されている。  
 よって、mkdir -p ~/.docker/cli-pluginsとして保存ディレクトリを作成する。  
-また、「DockerでBuildxを使用するには、Dockerエンジン19.03以降が必要です。」と記載がある。  
+また、「DockerでBuildxを使用するには、Dockerエンジン19.03以降が必要です。（Using Buildx with Docker requires Docker engine 19.03 or newer.）」と記載がある。  
 Amazon Linux 2023リポジトリより、dockerのバージョンは「25.0.8-1」と記載があるため、19.03以上であるため、バージョンの問題はないと考えられる。  
-念のため、「docker version」でバージョンを確認する。  
 buldxの最新バージョンはv0.30.0（2025/11月時点）であり、こちらをインストールする。  
 OS、アーキテクチャは「Linux」、「X86_64」であるため、これと同じ種類を選択する。  
 見たところx86_64は見当たらないが、別名の「amd64」（=x86_64）はあるため、これをインストールする。  
@@ -1015,9 +1016,11 @@ https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023
 - docker engine / docker composeのインストール  
 https://sig9.org/blog/2023/08/28/
 - docker composeのGitHubリポジトリ  
-https://github.com/docker/compose/releases
-- docker engineとdocker composeの互換表  
-https://docs.docker.jp/compose/compose-file/compose-versioning.html#compose-file-compatibility-matrix
+https://github.com/docker/compose/releases  
+- docker buildxのGitHubリポジトリ  
+https://github.com/docker/buildx
+- Docker公式ドキュメントのリリースノート  
+https://docs.docker.com/compose/releases/prior-releases/
 
 **2-4) Route53、ACM設定**  
 
@@ -1230,6 +1233,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
