@@ -1178,9 +1178,9 @@ DATABASES = {
 
 **2-8) CloudFront + S3による静的コンテンツ配信設定**  
 
-**S3バケットの作成**  
+**①S3バケットの作成**  
 静的ファイルを保存するためのS3バケットを作成する。  
-バケットタイプは「汎用」とし、バケット名は「kajimaru-s3」とする。  
+バケットタイプは「汎用」とし、バケット名は「kajimaru.com」とする。  
 オブジェクト所有者のACLは無効とし、オブジェクトの所有者は本AWSアカウントとする。  
 パブリックアクセスは「すべてブロック」として、外部からのアクセスを禁止する。  
 S3の保存容量を抑えてコスト削減を図るため、バケットのバージョニングは「無効」とし、静的ファイルのバージョン管理はせずに、常に最新の静的ファイルに上書きする。  
@@ -1188,6 +1188,46 @@ S3の暗号化では「S3マネージドキー(SSE-S3)」を使用する。
 SSE-KMSは復号時にKMS APIが呼ばれ、誰が復号したのかをログで追うことができ、セキュリティはより堅牢になるが、本アプリではコスト削減のため、無料のS3マネージドキーを使用する。  
 オブジェクトロックは、バケットのバージョニングを無効としているため「無効」とする。  
 
+**②CloudFrontの作成、S3との紐づけ**  
+CloudFrontをエッジサーバーとして、S3の静的ファイルをクライアントへ直接レスポンスするよう設定する。  
+ディストリビューションの作成にて、プランは、コスト削減のため「無料プラン」とする。  
+ディストリビューション名は、「kajimaru.com」とする。
+ドメインはRoute53に設定した「kajimaru.com」とする。  
+オリジンは「S3」として、静的ファイルを配信するよう設定する。  
+「kajimaru.com」をS3のオリジンとする。  
+コンテンツが保存されているオリジン内のパス名は、「/staticfiles」とする。  
+CloudFrontのプライベートS3バケットへのアクセスを「許可」する。  
+オリジン設定は「推奨のオリジン設定を使用する」、キャッシュ設定は「S3 コンテンツの提供に合わせてカスタマイズされた推奨キャッシュ設定を使用する」とする。  
+TLS証明書は「米国（バージニア北部）」で作成したものをアタッチする。  
+上記設定後に、CloudFrontを作成する。  
+
+**③Django設定ファイルとの紐づけ**  
+Django設定ファイルの「settings.prod.py」にて、S3との紐づけ、CloudFrontのドメイン指定を行う。  
+「django-storages（1.14.6）」のパッケージが必要となるため、requirements.txtに追加する。  
+S3バケット名には作成した「kajimaru.com」を、リージョン名は「ap-northeast-1（東京）」を、S3のカスタムドメインには、CloudFrontの「ディストリビューションドメイン名」を指定する。  
+クライアントは、静的ファイルを参照する際は、CloudFrontのカスタムドメイン「STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/」にリクエストするよう設定する。  
+以下に、Djangoの設定ファイルを抜粋して示す。  
+
+```
+# AWS S3との紐づけ
+AWS_STORAGE_BUCKET_NAME = 'kajimaru.com'
+AWS_S3_REGION_NAME = 'ap-northeast-1'
+AWS_S3_CUSTOM_DOMAIN = 'd2elnf4dyx4v7e.cloudfront.net'
+
+# ストレージをS3に指定
+STORAGES = {
+    'staticfiles': {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+}
+
+# 本番環境での静的ファイルの出力先
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# 本番環境のSTATIC_URL
+STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
+```
 
 **2-9) 本番環境設定**  
 
@@ -1241,6 +1281,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
