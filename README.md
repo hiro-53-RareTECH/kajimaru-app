@@ -929,7 +929,7 @@ git remote set-url origin <新しいURL>
 <br>
 
 次にDockerをインストールする。  
-Amazon Linux2023のリポジトリ（https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html）に、「docker（エンジン）」があるため、これをインストールする。  
+Amazon Linux2023のリポジトリ（<https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html>）に、「docker（エンジン）」があるため、これをインストールする。  
 
 - docker（エンジン）のインストール
   
@@ -949,10 +949,10 @@ sudo systemctl enable --now docker
 - docker composeのインストール
 
 docker compose up/down 等に必要な「docker compose」はなく、「docker（エンジン）」のみのインストールでは、docker composeコマンドがエラーとなる。   
-そのため、docker composeのGitHubリポジトリ（https://github.com/docker/compose/releases）より、docker composeのバージョンを指定してインストールする。  
+そのため、docker composeのGitHubリポジトリ（<https://github.com/docker/compose/releases>）より、docker composeのバージョンを指定してインストールする。  
 インストールする前にEC2内のdockerエンジンと互換性のあるdocker composeのバージョンを確認する。  
-EC内のdockerエンジンのバージョンは、Amazon Linux 2023のリポジトリ一覧（https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html）より、バージョンは「25.0.8-1」である。  
-Docker公式ドキュメントの以前のリリースノート（https://docs.docker.com/compose/releases/prior-releases/）より、「2.24.4」バージョンの依存関係のアップグレードに「Dependencies upgrade: bump docker to 25.0.1（依存関係のアップグレード: docker を 25.0.1 にアップグレード）」と記載がある。  
+EC内のdockerエンジンのバージョンは、Amazon Linux 2023のリポジトリ一覧（<https://docs.aws.amazon.com/ja_jp/linux/al2023/release-notes/all-packages-AL2023.9.html>）より、バージョンは「25.0.8-1」である。  
+Docker公式ドキュメントの以前のリリースノート（<https://docs.docker.com/compose/releases/prior-releases/>）より、「2.24.4」バージョンの依存関係のアップグレードに「Dependencies upgrade: bump docker to 25.0.1（依存関係のアップグレード: docker を 25.0.1 にアップグレード）」と記載がある。  
 これは、「内部依存ライブラリのアップグレード記載」であり、必須の Engine バージョン要件という意味ではないが、実運用で不整合が出るリスクを想定し、内部依存ライブラリのアップグレード記載と直近のバージョンをインストールすることとする。  
 よって、docker composeのバージョンは、EC2内のdockerエンジンのバージョン（25.0.8-1）に対し、直近の依存ライブラリのアップグレードバージョン（25.0.1）がある「2.24.4」とする。  
 docker composeのGitHubリポジトリ「v2.24.4」のAssetsを確認すると、OS、アーキテクチャに応じてインストールするものが決まるため、EC2のOS、アーキテクチャを確認する。  
@@ -987,7 +987,7 @@ docker compose version
 
 docker composeをインストールし、docker compose up --buildコマンドを叩くと、docker buildxのバージョンが古くエラーとなる場合がある。  
 そのため、docker buildxのインストールも必要に応じて行う。  
-docker buildxのGitHubリポジトリ（https://github.com/docker/buildx）より、Linuxでの保存先は「$HOME/.docker/cli-plugins」が推奨されている。  
+docker buildxのGitHubリポジトリ（<https://github.com/docker/buildx>）より、Linuxでの保存先は「$HOME/.docker/cli-plugins」が推奨されている。  
 よって、mkdir -p ~/.docker/cli-pluginsとして保存ディレクトリを作成する。  
 また、「DockerでBuildxを使用するには、Dockerエンジン19.03以降が必要です。（Using Buildx with Docker requires Docker engine 19.03 or newer.）」と記載がある。  
 Amazon Linux 2023リポジトリより、dockerのバージョンは「25.0.8-1」と記載があるため、19.03以上であるため、バージョンの問題はないと考えられる。  
@@ -1284,6 +1284,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
