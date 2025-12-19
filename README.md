@@ -946,6 +946,40 @@ docker version
 sudo systemctl enable --now docker
 ```
 
+- sudo無しでdockerコマンドを操作設定
+sudo無しでdockerコマンドを実行するためには、dockerグループにユーザーを追加する。
+ユーザーがない場合、root権限で操作を行うこととなるため、sudoが必要となる。  
+dockerグループが作成されているかどうか以下のコマンドで確認する。通常はdokcerインストールにより、グループが作成される。  
+
+```
+getent group docker
+```
+
+dockerグループがない場合は、以下のコマンドで作成する。  
+```
+sudo groupadd docker
+```
+
+EC2内のユーザーを確認する。  
+今回はssmで接続しているため、ユーザーは「ssm-user」となるため、ssm-userをdockerグループに追加する。  
+以下のコマンドでユーザーを確認し、uidに表示されたユーザーをdockerグループに追加する。  
+
+```
+id
+```
+
+```
+sudo usermod -aG docker ssm-user
+```
+
+再び、以下のコマンドを叩き、ssm-userが追加されているかどうか確認する。  
+```
+getent group docker
+```
+
+ssm-userが確認できれば、一度ssmの接続を中止し、再びssmで接続する。  
+入り直した後に、sudo無しでdockerコマンドが使用できる。  
+
 - docker composeのインストール
 
 docker compose up/down 等に必要な「docker compose」はなく、「docker（エンジン）」のみのインストールでは、docker composeコマンドがエラーとなる。   
@@ -1284,6 +1318,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
