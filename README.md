@@ -1203,12 +1203,15 @@ TLS証明書は「米国（バージニア北部）」で作成したものを�
 
 **③Django設定ファイルとの紐づけ**  
 Django設定ファイルの「settings.prod.py」にて、S3との紐づけ、CloudFrontのドメイン指定を行う。  
-「django-storages（1.14.6）」のパッケージが必要となるため、requirements.txtに追加する。  
+「django-storages（1.14.6）」のパッケージが必要となるため、requirements.txtに追加し、storagesアプリをINSTALLED_APPSに追加する。  
 S3バケット名には作成した「kajimaru.com」を、リージョン名は「ap-northeast-1（東京）」を、S3のカスタムドメインには、CloudFrontの「ディストリビューションドメイン名」を指定する。  
 クライアントは、静的ファイルを参照する際は、CloudFrontのカスタムドメイン「STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/」にリクエストするよう設定する。  
 以下に、Djangoの設定ファイルを抜粋して示す。  
 
 ```
+# storagesアプリの追加
+INSTALLED_APPS += ['storages']
+
 # AWS S3との紐づけ
 AWS_STORAGE_BUCKET_NAME = 'kajimaru.com'
 AWS_S3_REGION_NAME = 'ap-northeast-1'
@@ -1281,6 +1284,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
