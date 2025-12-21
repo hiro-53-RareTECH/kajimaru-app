@@ -2,7 +2,7 @@
 プロジェクト名の由来は、「家事 ＋ まるっと」であり、日々の家事を全部回す・まるく収めることをねらいとする。
 
 ## URL
-<https://kajimaru.com>
+<https://kajimaru.com>  
 スマートフォン専用アプリです。  
 PCから使用する場合は、開発者ツール（developer tools）を開いてご使用ください。  
 Windowsでは「F12」、Macでは「Command + Option + I」がショートカットキーです。  
@@ -1423,6 +1423,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
