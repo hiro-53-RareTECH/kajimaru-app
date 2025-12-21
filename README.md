@@ -1,7 +1,7 @@
 # ✨ かじまる
 プロジェクト名の由来は、「家事 ＋ まるっと」であり、日々の家事を全部回す・まるく収めることをねらいとする。
 
-## URL
+## 🔗 URL
 <https://kajimaru.com>  
 スマートフォン専用アプリです。  
 PCから使用する場合は、開発者ツール（developer tools）を開いてご使用ください。  
@@ -1307,14 +1307,237 @@ GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチ�
 ブランチ戦略は「git flow」に準じ、developブランチからreleaseブランチを切って、本番環境を設定する。  
 
 **②Docker Compose**  
+Docker Composeの本番環境用ファイルを以下のとおり示す。  
+本番環境用では、MySQLコンテナを廃止し、nginx, cronコンテナを追加した。  
+Djangoコンテナ起動時のコマンドに、gunicornの起動命令を設定し、すべての通信（0.0.0.0）に対して、8000番ポートで解放した。  
 
+```
+# web(django), nginx, cronのコンテナを作成（本番用）
+services:
+  # Djangoの設定
+  web:
+    # コンテナ名をdjango_prodに設定
+    container_name: django_prod
+    # Python(django)のDockerfileをビルド
+    # ビルドコンテキストは「カレントディレクトリ」とする
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.prod
+      # ビルド時のDockerfileの変数設定
+      args:
+        UID: ${UID:-1001}
+        GID: ${GID:-1001}
+        USERNAME: ${USERNAME:-appuser}
+        GROUPNAME: ${GROUPNAME:-appgroup}
+    # dockerコンテナ起動時のデフォルトコマンド設定
+    # RDS MySQLはコンソール操作で常に起動しているため、wait-for-it.shは本番環境では削除（また、KMSからMySQL_HOSTの読み込みが難しいため。）
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
+      gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --max-requests 1000 --max-requests-jitter 100"
+    # 内部ネットワークの明示（外には公開せず、nginxからのみアクセス可能）
+    expose:
+      - "8000"
+    # コンテナを削除するまで常に再起動する設定
+    restart: always
+    # 環境変数の設定
+    environment:
+      - TZ=${TZ}
+    # .envファイルから環境変数を読み込む
+    env_file:
+      - .env
+    volumes:
+      - ./staticfiles:/src/staticfiles
+    # Djangoのhealthcheckの設定 nginxから/healthへリバースプロキシ
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
+  # cronの設定
+  cron:
+    # web と同じイメージを利用
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.prod
+    container_name: django_cron
+    # cronをフォアグラウンドで起動
+    command: ["cron", "-f"]
+    # cronはrootで動かす（crontab内で appuser に切り替え済み）
+    user: "root"
+    restart: always
+    environment:
+      - TZ=${TZ}
+    env_file:
+      - .env
+    # DB などにアクセスするなら、network / env は web と同じに
+    depends_on:
+      - web
 
-**③Django, gunicorn**  
+  # nginxの設定
+  nginx:
+    # コンテナ名をnginxに設定
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: infra/nginx/Dockerfile
+    depends_on:
+      web:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    # コンテナを削除するまで常に再起動する設定
+    restart: always
+    # nginxの設定ファイルをコンテナへバインドマウント
+    volumes:
+      - ./infra/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./staticfiles:/src/staticfiles:ro
+    # nginxのヘルスチェック
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/nginx-health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+```
+
+**③Django**  
+Djangoの本番環境用のDockerfile、設定ファイル（config.settings.prod.py）を以下に示す。  
+
+- Dockerfile.prod
+```
+# 最新のLTSバージョンである3.13を使用
+FROM python:3.13
+
+# Pythonの出力をバッファリングしないように設定（ログが見やすくなるように設定）
+ENV PYTHONUNBUFFERED=1
+
+# ビルド時に渡す変数の定義
+ARG UID=1001
+ARG GID=1001
+ARG USERNAME=appuser
+ARG GROUPNAME=appgroup
+
+# 非ルートユーザーの作成
+RUN groupadd --gid ${GID} ${GROUPNAME} && \
+    useradd --uid ${UID} --gid ${GID} --shell /bin/bash --create-home ${USERNAME}
+
+# 作業ディレクトリの設定
+WORKDIR /src
+
+# wait-for-it.shをコンテナにコピー、実行権限を付与
+COPY docker/wait-for-it.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/wait-for-it.sh
+
+# requirements.txtをワーキングディレクトリ直下にコピー
+# 依存関係ファイルのみ先にコピー（キャッシュ効率化のため）
+COPY requirements.txt .
+
+# healthcheckのためcurlコマンドをインストール
+# cronをインストール
+# pipをアップデートして、Pythonのパッケージをインストール(-Uは--upgrade)
+# ローカルの保存用ディレクトリ（キャッシュ）の影響を排除して、常に最新のパッケージをインストールしたいため、--no-cache-dirを採用
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl cron && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install -U pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# crontabファイルをコピーして登録
+COPY docker/django_cron /etc/cron.d/django_cron
+RUN chmod 0644 /etc/cron.d/django_cron
+
+# コンテナの/src/logに出力設定
+RUN mkdir -p /src/log && chown ${USERNAME}:${GROUPNAME} /src/log
+
+# ローカルのsrc直下をコンテナへコピー
+COPY src/ .
+
+# コンテナの実行ユーザーを非rootユーザーに設定
+USER ${USERNAME}
+
+# ポート番号の明記（ドキュメント目的）
+# 実際の指定はdocker-compose.ymlで指定
+EXPOSE 8000
+```
+
+- config.settings.prod.py
+```
+# 「本番」環境変数の読み込みファイル base.pyをimportして差分だけを記述
+from .base import *
+import boto3
+
+DEBUG = False
+ALLOWED_HOSTS = ['kajimaru.com', 'localhost', '127.0.0.1'] # デプロイ先で公開サイトのURLに置き換える
+CSRF_TRUSTED_ORIGINS = ['https://kajimaru.com']
+
+# storagesアプリの追加
+INSTALLED_APPS += ['storages']
+
+# Parameter Store／KMSから機密情報の取得
+def get_ssm(name):
+    ssm = boto3.client('ssm', 'ap-northeast-1')
+    return ssm.get_parameter(Name=name, WithDecryption=True)['Parameter']['Value']
+
+# 【本番用に修正】DjangoのSECRET_KEY
+SECRET_KEY = get_ssm(os.getenv('DJANGO_SECRET_KEY'))
+
+# 【本番用に修正】DBの機密情報
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': get_ssm(os.getenv('MYSQL_DATABASE')),
+        'USER': get_ssm(os.getenv('MYSQL_USER')),
+        'PASSWORD': get_ssm(os.getenv('MYSQL_PASSWORD')),
+        'HOST': get_ssm(os.getenv('MYSQL_HOST')),
+        'PORT': '3306'
+    }
+}
+
+# AWS S3との紐づけ
+AWS_STORAGE_BUCKET_NAME = 'kajimaru.com'
+AWS_S3_REGION_NAME = 'ap-northeast-1'
+AWS_S3_CUSTOM_DOMAIN = 'd2elnf4dyx4v7e.cloudfront.net'
+
+# ストレージをS3に指定
+STORAGES = {
+    'staticfiles': {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+}
+
+# 本番環境での静的ファイルの出力先
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# 本番環境のSTATIC_URL
+STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
+
+# 以下はセキュリティ強化の設定
+# HTTPをHTTPSに自動的にリダイレクトする。
+SECURE_SSL_REDIRECT = True
+# クライアントからのリクエストヘッダーがHTTPSか否かを判定
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# セッションクッキーにSecure属性を付与。HTTPでの漏洩を防ぐ。
+SESSION_COOKIE_SECURE = True
+# CSRFトークンを格納するクッキーにSecure属性を付与。CSRF攻撃に対する保護を強化する。
+CSRF_COOKIE_SECURE = True
+# ブラウザが強制的にHTTPSに切り替える。SSLストリッピング攻撃（SSL Stripping Attack）などから保護する。「31536000」は1年間の秒数
+SECURE_HSTS_SECONDS = 31536000
+# ウェブサイトのすべてのサブドメインをHTTPS経由でアクセスするように強制する。
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# ユーザーが初回アクセスをする前からHTTPSが強制されるようプリロードリストへの登録意思を示す。
+SECURE_HSTS_PRELOAD = True
+
+```
 
 
 **④Nginx**  
-Nginxの本番環境設定ファイルを以下のとおり示す。  
+Nginxの本番環境用ファイルを以下のとおり示す。  
 Dockerfileでは、healthcheckのためのcurlコマンドをインストールしている。  
 conf.d/kajimaru.confでは、CloudFront+S3で静的ファイルを返すため、/staticへのリクエスト設定はコメントアウトしている。  
 
@@ -1423,6 +1646,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
