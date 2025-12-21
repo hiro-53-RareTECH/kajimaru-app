@@ -1299,12 +1299,84 @@ STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else 
 GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチをpull（初回はclone）する。  
 ブランチ戦略は「git flow」に準じ、developブランチからreleaseブランチを切って、本番環境を設定する。  
 
-**②Dockerfile, docker-compose**
-
-**③Django, gunicorn**
+**②Docker Compose**  
 
 
-**④Nginx**
+
+**③Django, gunicorn**  
+
+
+**④Nginx**  
+Nginxの本番環境設定ファイルを以下のとおり示す。  
+Dockerfileでは、healthcheckのためのcurlコマンドをインストールしている。  
+conf.d/kajimaru.confでは、CloudFront+S3で静的ファイルを返すため、/staticへのリクエスト設定はコメントアウトしている。  
+
+- Dockerfile
+```
+# nginxのDockerfile
+# curlコマンドインストールのため、Dockerfileを作成（docker-composeのcommandではCMDが上書きされてしまうため）
+FROM nginx:1.28
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+```
+
+- conf.d/kajimaru.conf
+```
+server {
+    # 待ち受けるポート番号の指定
+    listen       80;
+    # バーチャルホストのサーバーのホスト名の指定
+    server_name  localhost;
+
+    # クライアントリクエストボディの最大許容サイズの設定（デフォルトでは1MB）
+    client_max_body_size 10m;
+
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    # 引数に指定されたパス名に対応するコンテキストを作成
+    location / {
+        # root:リクエストのルートディレクトリを設定
+        # root   /usr/share/nginx/html;
+        # index:インデックス（索引）として使用するファイルを定義
+        # index  index.html index.htm;
+
+        # proxy_pass:プロキシサーバーのプロトコルとアドレスおよび場所をマッピングするURIを定義
+        proxy_pass http://web:8000;
+        # proxy_set_header:プロキシサーバーに渡されるリクエストヘッダーのフィールドを再定義または追加する
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        # バックエンドサーバーからの応答時間
+        proxy_read_timeout 60s;
+        # バックエンドサーバーへの接続試行時間
+        proxy_connect_timeout 5s;
+        # バックエンドサーバーからのレスポンスをそのままリダイレクト（nginxでリダイレクトを書き換えない）
+        proxy_redirect off;
+    }
+    # https://kajimaru.comアクセス時のリダイレクト設定（スタートページへ）
+    location = / {
+    	return 301 https://kajimaru.com/index/;
+    }
+    # DjangoのヘルスチェックのURLパスをプロキシ指定
+    location /health {
+        proxy_pass http://web:8000/health;
+    }
+    # nginxのヘルスチェックのURLパスとreturnを設定
+    location /nginx-health {
+        return 200 "ok";
+    }
+    # static(静的ファイル)のエイリアスを指定
+    #location /static/ {
+    # alias /src/staticfiles/;
+    # autoindex off;
+    #}
+}
+
+
+```
 
 **2-10) デプロイ**  
 
@@ -1344,6 +1416,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
