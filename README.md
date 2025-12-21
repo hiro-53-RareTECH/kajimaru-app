@@ -1229,13 +1229,41 @@ CloudFrontをエッジサーバーとして、S3の静的ファイルをクラ�
 ドメインはRoute53に設定した「kajimaru.com」とする。  
 オリジンは「S3」として、静的ファイルを配信するよう設定する。  
 「kajimaru.com」をS3のオリジンとする。  
-コンテンツが保存されているオリジン内のパス名は、「/staticfiles」とする。  
+コンテンツが保存されているオリジン内のパス名は、「/」とする。  
+これにより、「STATIC_URL = f'**https://{AWS_S3_CUSTOM_DOMAIN}/static/**'」がオリジンパスとなる。  
 CloudFrontのプライベートS3バケットへのアクセスを「許可」する。  
 オリジン設定は「推奨のオリジン設定を使用する」、キャッシュ設定は「S3 コンテンツの提供に合わせてカスタマイズされた推奨キャッシュ設定を使用する」とする。  
 TLS証明書は「米国（バージニア北部）」で作成したものをアタッチする。  
 上記設定後に、CloudFrontを作成する。  
 
-**③Django設定ファイルとの紐づけ**  
+**③IAMロールの設定 EC2からS3**  
+EC2からS3にアクセスできるようIAMポリシーを作成する。  
+既に作成しているIAMロールに以下のポリシーを追加する。  
+
+```
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "AllowAccessToDjangoStaticBucket",
+			"Effect": "Allow",
+			"Action": [
+				"s3:PutObject",
+				"s3:GetObject",
+				"s3:DeleteObject",
+				"s3:ListBucket",
+				"s3:GetBucketLocation"
+			],
+			"Resource": [
+				"arn:aws:s3:::kajimaru.com",
+				"arn:aws:s3:::kajimaru.com/*"
+			]
+		}
+	]
+}
+```  
+
+**④Django設定ファイルとの紐づけ**  
 Django設定ファイルの「settings.prod.py」にて、S3との紐づけ、CloudFrontのドメイン指定を行う。  
 「django-storages（1.14.6）」のパッケージが必要となるため、requirements.txtに追加し、storagesアプリをINSTALLED_APPSに追加する。  
 S3バケット名には作成した「kajimaru.com」を、リージョン名は「ap-northeast-1（東京）」を、S3のカスタムドメインには、CloudFrontの「ディストリビューションドメイン名」を指定する。  
@@ -1267,24 +1295,23 @@ STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else 
 ```
 
 **2-9) 本番環境設定**  
-
-**①Dockerfile, docker-compose**
-
-**②Django, gunicorn**
-
-
-**③Nginx**
-
-**2-10) デプロイ**  
-
 **①Git pull**  
 GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチをpull（初回はclone）する。  
 ブランチ戦略は「git flow」に準じ、developブランチからreleaseブランチを切って、本番環境を設定する。  
 
-**②Docker composeによる起動**  
-「docker compose up --build」を実行し、コンテナを立ち上げる。  
+**②Dockerfile, docker-compose**
 
-**③ヘルスチェック、疎通確認**  
+**③Django, gunicorn**
+
+
+**④Nginx**
+
+**2-10) デプロイ**  
+
+**①Docker composeによる起動**  
+「docker compose -f docker-compose.prod up --build」を実行し、コンテナを立ち上げる。  
+
+**②ヘルスチェック、疎通確認**  
 ALBおよびnginxのヘルスチェックが正常か否か確認する。  
 正常であれば、200番のステータスコードがレスポンスされる。  
 
@@ -1316,8 +1343,8 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 </details>
 
 
-
 -以上-
+
 
 
 
