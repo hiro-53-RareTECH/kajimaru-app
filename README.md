@@ -1619,6 +1619,46 @@ ALBおよびnginxのヘルスチェックが正常か否か確認する。
 
 **2-10) CloudWatch, Flowlogsによる監視・検知、SNS, Lambdaによる通知設定**  
 
+**①通知全体の流れ**  
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CW as CloudWatch Alarm
+    participant SNS as SNS Topic
+    participant L as Lambda (Formatter)
+    participant MM as Mattermost (Incoming Webhook)
+    participant CH as Mattermost Channel
+
+    Note over CW: ① 監視対象メトリクスがしきい値を超える<br/>（例: EC2 CPU, RDS FreeStorage, FlowLogs REJECT数 など）
+    CW->>SNS: Publish Alarm Message<br/>（NewStateValue=ALARM / OK / INSUFFICIENT_DATA）
+
+    Note over SNS: ② SNSは「配信ハブ」<br/>複数購読先（Lambda/Email等）へ同報可能
+    SNS-->>L: Invoke Lambda (SNS event)<br/>Records[0].Sns.Message / Subject
+
+    Note over L: ③ Lambdaで整形（SNSのJSON→Mattermost用JSON）<br/>・SNSのMessageはJSON or 文字列の場合がある<br/>・必要ならアラーム名/状態/理由を抽出してMarkdown化
+    L->>MM: HTTP POST /hooks/XXXX<br/>Content-Type: application/json<br/>{"text":"...Markdown..."}
+
+    alt Webhook受理（2xx）
+        MM-->>L: 200 OK
+        Note over MM: ④ Incoming Webhookがメッセージを投稿
+        MM->>CH: Post message to channel
+    else Webhook拒否（4xx/5xx）
+        MM-->>L: Error (400/403/404/5xx)
+        Note over L: ⑤ Lambdaログにエラーが残る<br/>（Webhook URL誤り / 権限 / ネットワーク到達性 / JSON不正）
+    end
+
+    Note over L,SNS: ⑥ 失敗時の切り分けポイント<br/>・SNS→Lambda: LambdaのCloudWatch Logsに「START」が出るか<br/>・Lambda→Mattermost: HTTPレスポンスコード/例外を確認
+```
+
+**②Mattermost Incoming Webhookの作成**  
+Mattermostの任意のチャンネルで、「内向きのWebhook」を選択し、WebhookのURLを控える。  
+本開発期間中は、以下のURLを使用した。  
+このURLがLambdaでPOSTする宛先になる。  
+```
+MATTERMOST_WEBHOOK_URL = "https://chat.raretech.site/hooks/y9maqimxapdybrg65p3hu8ix7o"
+```
+
+**③**
 
 
 **2-11) EC2の複製**  
@@ -1646,6 +1686,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
