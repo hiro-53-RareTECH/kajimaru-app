@@ -1658,7 +1658,13 @@ Mattermostの任意のチャンネルで、「内向きのWebhook」を選択し
 MATTERMOST_WEBHOOK_URL = "https://chat.raretech.site/hooks/y9maqimxapdybrg65p3hu8ix7o"
 ```
 
-**③**
+**③SNSトピックの作成**  
+
+
+**④Lambda関数の作成**  
+
+
+**⑤CloudWatchアラームとSNSの紐づけ**  
 
 
 **2-11) EC2の複製**  
@@ -1686,6 +1692,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
