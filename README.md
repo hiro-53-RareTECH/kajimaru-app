@@ -700,18 +700,16 @@ sequenceDiagram
 <details>
 <summary>6. AWS環境構築、デプロイ</summary>  
 
-**1) 作業フロー**  
-以下にAWS環境構築、デプロイまでの作業フローを示す。  
+<p align='center'>
+<img width="304" height="1202" alt="image" src="https://github.com/user-attachments/assets/7d39a9c5-1860-4661-b921-150912886a3a" />
+</p>
 
 
-**2) 各作業の詳細**  
-前述の作業フローにおける各作業の詳細を次のとおり示す。  
-
-**2-1) ネットワーク設定**  
-**①VPC作成**  
+**1) ネットワーク設定**  
+**1-1) VPC作成**  
 VPC名は「kajimaru」として、IPv4 CIDR ブロックは「10.0.0.0/16」（最大の16ビットブロック）とした。  
 
-**②サブネット作成**  
+**1-2) サブネット作成**  
 インフラ構成図より、サブネットは全部で「6」個とし、パブリック、プライベートで分ける。  
 AZは「ap-northeast-1a」、「ap-northeast-1c」とした。  
 サブネットのプレフィックスは、サブネット数、リソース数のバランスを取ることとし、「10.0.0.0/20」とした。  
@@ -727,18 +725,18 @@ AZは「ap-northeast-1a」、「ap-northeast-1c」とした。
 | 05-private | 10.0.64.0/20 | ap-northeast-1a |
 | 06-private | 10.0.80.0/20 | ap-northeast-1c |
 
-**③IGW作成**  
+**1-3) IGW作成**  
 「kajimaru-IGW」という名前でIGW（インターネットゲートウェイ）を作成した。  
 作成したVPC「kajimaru」にアタッチする。  
 
-**④NATGW作成**  
+**1-4) NATGW作成**  
 「kajimaru-NATGW」という名前でNATGW（ナットゲートウェイ）を作成した。  
 NATGWはプライベートサブネットに配置する「EC2」、「RDS」がインターネットと通信できるように設置するためのものである。  
 ただし、インターネット側からEC2、RDSに接続できないよう、通信方向はEC2、RDSからインターネットに向かう一方向とする。  
 NATGWはインターネットとの通信を行うため、「パブリックサブネット」に配置し、「ElasticIP」を割り当てる。  
 NATGWは、1時間単位で料金がかかり、2つのパブリックサブネットに1つずつ配置するとコストが高くなるため、コスト削減のため、パブリックサブネット1つ（01-public, ap-northeast-1a）に配置する。  
 
-**⑤ルートテーブル作成**  
+**1-5) ルートテーブル作成**  
 インターネットおよびサブネット間の通信経路を設定するため、ルートテーブルを作成する。  
 ルートテーブルは「IGW、NATGW間」、「NATGWとEC2, RDSサブネット間」でそれぞれ設定する。  
 設定内容を以下に示す。  
@@ -768,15 +766,15 @@ NATGWは、1時間単位で料金がかかり、2つのパブリックサブネ�
 |  | プライベートサブネット | サブネットID | 05-private |
 
 
-**2-2) EC2設定**  
+**2) EC2設定**  
 
 
-**①SG作成**  
+**2-1) SG作成**  
 EC2インスタンスを作成する前にSG（セキュリティグループ）を作成する。  
 EC2は、後述するSSM（セッションマネージャー）により接続するため、インバウンドルールを設定することなく、セキュアに接続する。  
 よって、EC2のSGのインバウンドは「なし（許可しない）」、アウトバウンドルールは「HTTPS(443)、すべてのトラフィック（0.0.0.0）」とする。  
 
-**②EC2インスタンス作成**  
+**2-2) EC2インスタンス作成**  
 EC2インスタンスを1台作成する。2台目のEC2インスタンスは、1台目のデプロイが完了した後に設定する。  
 EC2のマシンイメージは、AWSに最適化されており、デフォルトでセキュリティが考慮されている「**Amazon Linux2023**」とする。  
 インスタンスタイプは、コスト削減のため、無料枠の「**t2.micro**」とする。  
@@ -790,7 +788,7 @@ SGは前述したSGを適用する。
 | kajimaru-ec2-02 | 04-private |
 
 
-**③IAMロールの作成**  
+**2-3) IAMロールの作成**  
 IAMロールとは「誰が・どのサービスを・どこまで」アクセスできるかを制御できる仕組みである。  
 作成したEC2に「AmazonSSMManagedInstanceCore」という「AWS Systems Manager サービスコア機能を有効にする Amazon EC2 ロールのポリシー」をアタッチする。  
 これにより、アタッチしたEC2がSSMと通信できる。  
@@ -799,13 +797,13 @@ IAMロールとは「誰が・どのサービスを・どこまで」アクセ�
 EC2作成、IAMロールアタッチ、VPCエンドポイント作成  
 https://qiita.com/free-honda/items/9740ef602f072ab2b88c
 
-**2-3) VPCエンドポイント作成、EC2への接続**  
+**3) VPCエンドポイント作成、EC2への接続**  
 
-**③-1) SG作成**  
+**3-1) SG作成**  
 後述のVPCエンドポイントを作成する前に、VPCエンドポイントにアタッチするSGを作成する。  
 EC2からSSMにHTTPS（443）で接続するため、インバウンドルールは「EC2のSG」とし、アウトバウンドルールは「すべてのトラフィック（0.0.0.0）」とする。  
 
-**③-2) VPCエンドポイント作成**  
+**3-2) VPCエンドポイント作成**  
 プライベートサブネット内に位置するEC2に接続する（EC2からSSMに通信する）ために、VPCエンドポイントを作成する。  
 VPCエンドポイントは、以下に示す参考資料の公式ドキュメントより、以下の3つとする。  
 
@@ -841,12 +839,12 @@ com.amazonaws.ap-northeast-1.ssmmessages
 SSM、EC2接続のためのVPCエンドポイント設定  
 https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-prerequisites.html  
 
-**③-3) EC2接続確認**  
+**3-3) EC2接続確認**  
 作成したEC2インスタンスを起動し、SSM（セッションマネージャー）でEC2へ接続する。  
 注）EC2へのIAMロールアタッチ、VPCエンドポイント作成した直後は繋がらない場合がある（タイムラグがある）ため、時間をおいて接続確認することに留意する。  
 
 
-**2-4) EC2内でのGit, Dockerのインストール**  
+**3-4) EC2内でのGit, Dockerのインストール**  
 SSM（セッションマネージャー）でEC2に接続し、EC2内にGit, Dockerをインストールする。  
 以下のコマンドでGitをインストールする。  
 
@@ -1045,17 +1043,17 @@ https://github.com/docker/buildx
 - Docker公式ドキュメントのリリースノート  
 https://docs.docker.com/compose/releases/prior-releases/
 
-**2-4) Route53、ACM設定**  
+**4) Route53、ACM設定**  
 
-**①お名前ドットコムより独自ドメイン取得**  
+**4-1) お名前ドットコムより独自ドメイン取得**  
 お名前ドットコムより、独自ドメインを取得する。  
 「kajimaru.com」でドメインを取得した。  
 
-**②Route53のホストゾーン作成、NSレコードの取得**  
+**4-2) Route53のホストゾーン作成、NSレコードの取得**  
 取得したドメイン「kajimaru.com」をRoute53のホストゾーンに登録する。  
 登録後にAWSのNSレコードが作成されるため、このNSレコードをお名前ドットコムの「ネームサーバー設定」、「その他の設定」にて登録する。  
 
-**③ACM作成、Route53に登録**  
+**4-3) ACM作成、Route53に登録**  
 ACMにてSSL/TLSの証明書を発行する。  
 「kajimaru.com」および「*.kajimaru.com」を証明書としてリクエストし、CNAMEを取得する。  
 その後に「Route 53 でレコードを作成」を押下し、先ほど作成したRoute53のホストゾーンにCNAMEが登録されていることを確認する。  
@@ -1065,9 +1063,9 @@ Aレコードの登録は、後述するALBをエイリアスとして登録す�
 https://qiita.com/free-honda/items/8fb5124ae36616d64dd1  
 https://www.onamae.com/column/domain/46/  
 
-**2-5) ALB設定**  
+**5) ALB設定**  
 
-**①各SG設定、ALBの通信経路**  
+**5-1) 各SG設定、ALBの通信経路**  
 以下に各SG設定、ALBの通信経路を示す。  
 クライアントからの通信は、ALBがHTTPSの終端となる。  
 
@@ -1095,7 +1093,7 @@ sequenceDiagram
     ALB-->>User: HTTPS 443 (Response)
 ```
 
-**②SG作成**  
+**5-2) SG作成**  
 ALBに適用するSGは、クライアントからのリクエストを受信するため、インバウンドはHTTPS（443）、すべての通信（0.0.0.0）とする。  
 EC2に適用するSGは、前述した「EC2の設定」で作成したものを修正して作成する。  
 インバウンドはALBからの通信のみを許可したいため、ALBのSGを対象とし、プロトコルはNginxのポート番号である「HTTP, 80」とする。  
@@ -1109,25 +1107,25 @@ RDSに適用するSGは、EC2からの通信のみを許可したいため、EC2
 | kajimaru-DB-SG | MYSQL/Aurora / 3306 / kajimaru-ec2-SG | 0.0.0.0/0 |
 
 
-**③TG作成**  
+**5-3) TG作成**  
 ALBのTGは、EC2とし、作成したEC2インスタンスが対象となる。  
 EC2はHTTPの80番ポートでリッスンしているため、ターゲットも同様に「HTTP, 80」とする。  
 
-**④ALB作成**  
+**5-4) ALB作成**  
 作成するALBの名前は「kajimaru-ALB」とし、SG、TG、ACMを設定する。  
 前述したSG, TGを適用し、事前に作成したACMの証明書をALBにアタッチする。  
 
-**⑤Route53に関連付け**  
+**5-5) Route53に関連付け**  
 Route53のホストゾーンのAレコードのエイリアスにALBを指定し、Route53とALBを紐づける。  
 Aレコードがホストゾーンに登録されていることを確認する。  
 
-**2-6) RDS設定**  
+**6) RDS設定**  
 
-**①サブネットグループの作成**  
+**6-1) サブネットグループの作成**  
 RDSは外部からのアクセスを防止するため、パブリックサブネットに配置し、配置するサブネットのサブネットグループを作成する。  
 サブネットグループには、「05-private」、「06-private」を指定する。  
 
-**②RDS MySQL作成**  
+**6-2) RDS MySQL作成**  
 RDS MySQLのメジャーバージョンは、標準サポートがある**8.4**とした。  
 **8.0**は標準サポート期限が「2026年7月31日」であり、実務での長期運用を想定した場合に避けたほうがいいと考えた。  
 マイナーバージョンは、開発環境との整合を取るため、開発開始時の2025年10月時点での最新版とし、**8.4.6**とした。  
@@ -1142,7 +1140,7 @@ RDS MySQLはコスト削減のため「無料利用枠」を指定し、イン�
 | DBパラメータグループ | kajimaru-db-group | RDSの設定ファイルに相当、character_set_server：utf8mb4、time_zone：Asia/Tokyo |
 | オプショングループ | kajimaru-db-option | RDSの追加機能を有効化するための設定 |
 
-**③EC2からRDSへの接続確認**  
+**6-3) EC2からRDSへの接続確認**  
 RDS MySQLが作成できた後に、セッションマネージャーでEC2内にアクセスし、EC2からRDS MySQLの接続確認を行う。  
 EC2のマシンイメージは「Amazon Linux2023」であるが、Amazon Linux2023のリポジトリには、MySQL本家のクライアント（mysql）がない（2025年11月時点）。  
 そのため、AWS公式ドキュメントより推奨の「MariaDBクライアント」をインストールして、RDS MySQLに接続する。  
@@ -1168,7 +1166,7 @@ https://docs.aws.amazon.com/ja_jp/AmazonRDS/latest/UserGuide/mysql-install-cli.h
 
 <br>
 
-**2-7) Parameter Store / KMSによる機密情報設定**  
+**7) Parameter Store / KMSによる機密情報設定**  
 機密情報は.envに平文で保存するのを避け、Parameter Store / KMSにより暗号化して保存する。  
 暗号化したい機密情報をキーバリュー形式でParameter Store / KMSに保存し、呼び出しの際は、ssmクライアントを使用して、キーから暗号化したバリューを呼び出す。  
 種類は「SecureString」、データ型は「text」とする。  
@@ -1199,9 +1197,9 @@ DATABASES = {
 }
 ```
 
-**2-8) CloudFront + S3による静的コンテンツ配信設定**  
+**8) CloudFront + S3による静的コンテンツ配信設定**  
 
-**①S3バケットの作成**  
+**8-1) S3バケットの作成**  
 静的ファイルを保存するためのS3バケットを作成する。  
 バケットタイプは「汎用」とし、バケット名は「kajimaru.com」とする。  
 オブジェクト所有者のACLは無効とし、オブジェクトの所有者は本AWSアカウントとする。  
@@ -1211,7 +1209,7 @@ S3の暗号化では「S3マネージドキー(SSE-S3)」を使用する。
 SSE-KMSは復号時にKMS APIが呼ばれ、誰が復号したのかをログで追うことができ、セキュリティはより堅牢になるが、本アプリではコスト削減のため、無料のS3マネージドキーを使用する。  
 オブジェクトロックは、バケットのバージョニングを無効としているため「無効」とする。  
 
-**②CloudFrontの作成、S3との紐づけ**  
+**8-2) CloudFrontの作成、S3との紐づけ**  
 CloudFrontをエッジサーバーとして、S3の静的ファイルをクライアントへ直接レスポンスするよう設定する。  
 ディストリビューションの作成にて、プランは、コスト削減のため「無料プラン」とする。  
 ディストリビューション名は、「kajimaru.com」とする。
@@ -1225,7 +1223,7 @@ CloudFrontのプライベートS3バケットへのアクセスを「許可」�
 TLS証明書は「米国（バージニア北部）」で作成したものをアタッチする。  
 上記設定後に、CloudFrontを作成する。  
 
-**③IAMロールの設定 EC2からS3**  
+**8-3) IAMロールの設定 EC2からS3**  
 EC2からS3にアクセスできるようIAMポリシーを作成する。  
 既に作成しているIAMロールに以下のポリシーを追加する。  
 
@@ -1252,7 +1250,7 @@ EC2からS3にアクセスできるようIAMポリシーを作成する。
 }
 ```  
 
-**④Django設定ファイルとの紐づけ**  
+**8-4) Django設定ファイルとの紐づけ**  
 Django設定ファイルの「settings.prod.py」にて、S3との紐づけ、CloudFrontのドメイン指定を行う。  
 「django-storages（1.14.6）」のパッケージが必要となるため、requirements.txtに追加し、storagesアプリをINSTALLED_APPSに追加する。  
 S3バケット名には作成した「kajimaru.com」を、リージョン名は「ap-northeast-1（東京）」を、S3のカスタムドメインには、CloudFrontの「ディストリビューションドメイン名」を指定する。  
@@ -1283,12 +1281,12 @@ STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 ```
 
-**2-9) 本番環境設定**  
-**①Git pull**  
+**9) 本番環境設定**  
+**9-1) Git pull**  
 GitHubのリモートリポジトリからEC2へ、最新のdevelopブランチをpull（初回はclone）する。  
 ブランチ戦略は「git flow」に準じ、developブランチからreleaseブランチを切って、本番環境を設定する。  
 
-**②Docker Compose**  
+**9-2) Docker Compose**  
 Docker Composeの本番環境用ファイルを以下のとおり示す。  
 本番環境用では、MySQLコンテナを廃止し、nginx, cronコンテナを追加した。  
 Djangoコンテナ起動時のコマンドに、gunicornの起動命令を設定し、すべての通信（0.0.0.0）に対して、8000番ポートで解放した。  
@@ -1387,7 +1385,7 @@ services:
       start_period: 20s
 ```
 
-**③Django**  
+**9-3) Django**  
 Djangoの本番環境用のDockerfile、設定ファイル（config.settings.prod.py）を以下に示す。  
 
 - Dockerfile.prod
@@ -1518,7 +1516,7 @@ SECURE_HSTS_PRELOAD = True
 ```
 
 
-**④Nginx**  
+**9-4) Nginx**  
 Nginxの本番環境用ファイルを以下のとおり示す。  
 Dockerfileでは、healthcheckのためのcurlコマンドをインストールしている。  
 conf.d/kajimaru.confでは、CloudFront+S3で静的ファイルを返すため、/staticへのリクエスト設定はコメントアウトしている。  
@@ -1590,18 +1588,18 @@ server {
 
 ```
 
-**2-10) デプロイ**  
+**10) デプロイ**  
 
-**①Docker composeによる起動**  
+**10-1) Docker composeによる起動**  
 「docker compose -f docker-compose.prod up --build」を実行し、コンテナを立ち上げる。  
 
-**②ヘルスチェック、疎通確認**  
+**10-2) ヘルスチェック、疎通確認**  
 ALBおよびnginxのヘルスチェックが正常か否か確認する。  
 正常であれば、200番のステータスコードがレスポンスされる。  
 
-**2-10) CloudWatch, Flowlogsによる監視・検知、SNS, Lambdaによる通知設定**  
+**11) CloudWatch, Flowlogsによる監視・検知、SNS, Lambdaによる通知設定**  
 
-**①通知全体の流れ**  
+**11-1) 通知全体の流れ**  
 ```mermaid
 sequenceDiagram
     autonumber
@@ -1632,7 +1630,7 @@ sequenceDiagram
     Note over L,SNS: ⑥ 失敗時の切り分けポイント<br/>・SNS→Lambda: LambdaのCloudWatch Logsに「START」が出るか<br/>・Lambda→Mattermost: HTTPレスポンスコード/例外を確認
 ```
 
-**②Mattermost Incoming Webhookの作成**  
+**11-2) Mattermost Incoming Webhookの作成**  
 Mattermostの任意のチャンネルで、「内向きのWebhook」を選択し、WebhookのURLを控える。  
 本開発期間中は、以下のURLを使用した。  
 このURLがLambdaでPOSTする宛先になる。  
@@ -1640,10 +1638,10 @@ Mattermostの任意のチャンネルで、「内向きのWebhook」を選択し
 MATTERMOST_WEBHOOK_URL = "https://chat.raretech.site/hooks/y9maqimxapdybrg65p3hu8ix7o"
 ```
 
-**③SNSトピックの作成**  
+**11-3) SNSトピックの作成**  
 SNSトピックの作成より、タイプ「標準」を選択し、トピックの名前は「kajimaru」としてSNSを作成した。  
 
-**④Lambda関数の作成**  
+**11-4) Lambda関数の作成**  
 Lambda関数を作成し、「Python3.13」（本番環境と同じバージョン）を選定する。  
 作成後に、環境変数に「MATTERMOST_WEBHOOK_URL = "https://chat.raretech.site/hooks/y9maqimxapdybrg65p3hu8ix7o"」を設定し、以下のコードを設定する。  
 その後にデプロイボタンを押して、設定を完了する。  
@@ -1705,18 +1703,18 @@ def lambda_handler(event, context):
 
 ```
 
-**④LambdaのトリガーにSNSを設定**  
+**11-5) LambdaのトリガーにSNSを設定**  
 Lambdaのトリガーに作成したSNSトピックを設定する。  
 これでCloudWatchからのアラーム通知をSNSに
 
-**④SNSトピックにサブスクリプションを追加**  
+**11-6) SNSトピックにサブスクリプションを追加**  
 SNSトピックに作成したLambdaをサブスクリプションとして登録する。  
 
-**⑤CloudWatchアラームとSNSの紐づけ**  
+**11-7) CloudWatchアラームとSNSの紐づけ**  
 CloudWatchの「アラームの作成」にて、アラームを作成し、アクションで作成したSNSと紐づける。  
 今回作成したアラーム通知は、EC2とRDSのCPU使用率が5分間に80%以上とした。  
 
-**⑥VPC Flowlogsの作成**  
+**11-8) VPC Flowlogsの作成**  
 CloudWatch logsのLog ManagementにてVPC Flowlogsの出力先である「ロググループ」を作成する。  
 ロググループ名は「/vpc/flowlogs/main-vpc」とした。  
 
@@ -1732,7 +1730,7 @@ VPC FlowlogsがCloudWatch logsに書き込むためのIAMロールを作成す�
 ${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}
 ```
 
-**⑦メトリクスフィルタの設定**  
+**11-9) メトリクスフィルタの設定**  
 FlowLogsから検知条件を作り、「Flow Logs → CloudWatch Logs → メトリクスフィルタ → 異常を数値化 → アラーム通知」を実装する。  
 以下に設定したメトリクスフィルターを示す。  
 メトリクス値は「1」として、フィルターに合致するものが検出された際に、1を加算する。  
@@ -1749,95 +1747,33 @@ FlowLogsから検知条件を作り、「Flow Logs → CloudWatch Logs → メ�
 [version, account, eni, srcaddr, dstaddr, srcport, dstport=3306, protocol, packets, bytes, action, logstatus]
 ```
 
-**⑧CloudWatchのアラーム設定**  
+**11-10) CloudWatchのアラーム設定**  
 先ほど作成したメトリクスを選択して、CloudWatchのアラームを設定する。  
 （設定したメトリクスが反映されるまで、時間差がある。）  
 「dstport=22」、「dstport=3306」ともに、5分間に10回以上検知するとアラーム通知をするように設定した。  
 アラームのアクションは、SNSトピックと紐づける。  
 
-**2-11) EC2の複製**  
+**12) EC2の複製**  
 
-**①AMI作成**
+**12-1) AMI作成**
 既に作成したEC2と同じEC2を複製するために、「Amazon マシンイメージ (AMI)」を作成する。  
 
-**②EC2インスタンス作成**
+**12-2) EC2インスタンス作成**
 EC2インスタンス起動画面から、作成したAMIを選択し、EC2インスタンスを複製する。  
 サブネット名は「04-private」、AZは「ap-northeast-1c」とする。  
 SGは、既に1つ目のEC2に適用しているSGと同様とする。  
 
-**③TG再設定**
+**12-3) TG再設定**
 ALBのターゲットグループに作成したEC2インスタンスを追加する。  
 
-**④Docker compose起動**
+**12-4) Docker compose起動**
 複製したEC2にSSMでアクセスし、Dockerコンテナを起動する。  
 ヘルスチェックが200番のステータスコードを返すか否か確認し、ALBのリソースマップで通信が2台のEC2に分散されているか確認する。  
 
-**2-12) Git push**  
+**13) Git push**  
 本番環境設定が完了し、デプロイが確認できた後に、GitHubのリモートリポジトリへpushする。  
 git flowに準じ、releaseブランチからmainブランチへpushする。  
 
 </details>
 
-
 -以上-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
