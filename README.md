@@ -1705,7 +1705,7 @@ def lambda_handler(event, context):
 
 **11-5) LambdaのトリガーにSNSを設定**  
 Lambdaのトリガーに作成したSNSトピックを設定する。  
-これでCloudWatchからのアラーム通知をSNSに
+これでCloudWatchからのアラーム通知をトリガーとして、SNSを介して、Lambda関数が実行され、Mattermostに通知される。  
 
 **11-6) SNSトピックにサブスクリプションを追加**  
 SNSトピックに作成したLambdaをサブスクリプションとして登録する。  
@@ -1777,4 +1777,5 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 </details>
 
 -以上-
+
 
