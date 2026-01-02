@@ -705,7 +705,6 @@ sequenceDiagram
 **1) 作業フロー**  
 以下にAWS環境構築、デプロイまでの作業フローを示す。  
 
-
 ```mermaid
 flowchart TB
     classDef left text-align:left;
@@ -718,9 +717,7 @@ flowchart TB
     F --> G[7. 本番環境設定（EC2内での作業）<br/>①Dockerの本番用設定<br/>②Djangoの本番用設定<br/>③Nginxの本番用設定<br/>④Docker compose起動（デプロイ）<br/>⑤ヘルスチェック、疎通確認]:::left
     G --> H[8. EC2の複製<br/>①AMI作成<br/>②EC2インスタンス作成<br/>③SG, TG再設定<br/>④Docker compose起動]:::left
     H --> I[9. Git push<br/>①リモートリポジトリへpush]:::left
-
 ```
-
 
 **2) 各作業の詳細**  
 前述の作業フローにおける各作業の詳細を次のとおり示す。  
@@ -1632,7 +1629,7 @@ sequenceDiagram
     Note over CW: ① 監視対象メトリクスがしきい値を超える<br/>（例: EC2 CPU, RDS FreeStorage, FlowLogs REJECT数 など）
     CW->>SNS: Publish Alarm Message<br/>（NewStateValue=ALARM / OK / INSUFFICIENT_DATA）
 
-    Note over SNS: ② SNSは「配信ハブ」<br/>複数購読先（Lambda/Email等）へ同報可能
+    Note over SNS: ② SNSは「配信ハブ」<br/>購読先（Lambda）へ同報可能
     SNS-->>L: Invoke Lambda (SNS event)<br/>Records[0].Sns.Message / Subject
 
     Note over L: ③ Lambdaで整形（SNSのJSON→Mattermost用JSON）<br/>・SNSのMessageはJSON or 文字列の場合がある<br/>・必要ならアラーム名/状態/理由を抽出してMarkdown化
@@ -1659,10 +1656,7 @@ MATTERMOST_WEBHOOK_URL = "https://chat.raretech.site/hooks/y9maqimxapdybrg65p3hu
 ```
 
 **③SNSトピックの作成**  
-SNSトピックの作成より、タイプ「標準」を選択し、トピックの名前は「kajimaru」とした。  
-
-**④SNSトピックにサブスクリプションを追加**  
-
+SNSトピックの作成より、タイプ「標準」を選択し、トピックの名前は「kajimaru」としてSNSを作成した。  
 
 **④Lambda関数の作成**  
 Lambda関数を作成し、「Python3.13」（本番環境と同じバージョン）を選定する。  
@@ -1726,10 +1720,16 @@ def lambda_handler(event, context):
 
 ```
 
+**④LambdaのトリガーにSNSを設定**  
+Lambdaのトリガーに作成したSNSトピックを設定する。  
+これでCloudWatchからのアラーム通知をSNSに
 
+**④SNSトピックにサブスクリプションを追加**  
+SNSトピックに作成したLambdaをサブスクリプションとして登録する。  
 
 **⑤CloudWatchアラームとSNSの紐づけ**  
-
+CloudWatchの「アラームの作成」にて、アラームを作成し、アクションで作成したSNSと紐づける。  
+今回作成したアラーム通知は、EC2とRDSのCPU使用率が5分間に80%以上とした。  
 
 **⑥VPC Flowlogsの作成**  
 CloudWatch logsのLog ManagementにてVPC Flowlogsの出力先である「ロググループ」を作成する。  
@@ -1749,8 +1749,26 @@ ${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstp
 
 **⑦メトリクスフィルタの設定**  
 FlowLogsから検知条件を作り、「Flow Logs → CloudWatch Logs → メトリクスフィルタ → 異常を数値化 → アラーム通知」を実装する。  
+以下に設定したメトリクスフィルターを示す。  
+メトリクス値は「1」として、フィルターに合致するものが検出された際に、1を加算する。  
 
+```
+22番ポートへの直接の不正アクセスを検知
+「フィルター名」、「メトリクス名前空間」、「メトリクス名」は「dstport=22」とした
+[version, account, eni, srcaddr, dstaddr, srcport, dstport=22, protocol, packets, bytes, action, logstatus]
+```
 
+```
+3306番ポート（MySQL）への直接の不正アクセスを検知
+「フィルター名」、「メトリクス名前空間」、「メトリクス名」は「dstport=3306」とした
+[version, account, eni, srcaddr, dstaddr, srcport, dstport=3306, protocol, packets, bytes, action, logstatus]
+```
+
+**⑧CloudWatchのアラーム設定**  
+先ほど作成したメトリクスを選択して、CloudWatchのアラームを設定する。  
+（設定したメトリクスが反映されるまで、時間差がある。）  
+「dstport=22」、「dstport=3306」ともに、5分間に10回以上検知するとアラーム通知をするように設定した。  
+アラームのアクションは、SNSトピックと紐づける。  
 
 **2-11) EC2の複製**  
 
@@ -1777,6 +1795,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
