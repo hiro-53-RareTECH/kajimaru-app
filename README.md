@@ -671,29 +671,23 @@ AWSを使用して、インフラを構築する。
 **1) 通信経路図**  
 
 ```mermaid
-flowchart TB
-    %% =========================
-    %% 2章：AWS構築〜本番運用フロー
-    %% =========================
+sequenceDiagram
+    autonumber
 
-    A["2-1 ネットワーク設定<br/>① VPC作成<br/>② サブネット作成<br/>③ IGW作成<br/>④ NATGW作成<br/>⑤ ルートテーブル作成"]
-    B["2-2 EC2設定<br/>① SG作成(EC2)<br/>② EC2インスタンス作成<br/>③ IAMロール作成(SSM用)"]
-    C["2-3 VPCエンドポイント作成、EC2への接続<br/>2-3-1 SG作成(VPCE用)<br/>2-3-2 VPCエンドポイント作成(ec2messages/ssm/ssmmessages)<br/>2-3-3 SSMでEC2接続確認"]
-    D["2-4 EC2内でのGit, Dockerのインストール<br/>① Gitインストール<br/>② SSH鍵作成→GitHub登録→ssh -T確認<br/>③ Docker Engineインストール<br/>④ docker compose導入<br/>⑤ docker buildx導入(必要に応じて)"]
+    participant User as ユーザー（User）
+    participant CF as CloudFront<br/>（HTTPS終端 / ACM）
+    participant ALB as ALB<br/>（Public Subnet）
+    participant EC2 as EC2<br/>（Nginx / Gunicorn / Private Subnet）
+    participant RDS as RDS MySQL<br/>（Private Subnet）
 
-    E["2-5 Route53、ACM設定<br/>① ドメイン取得<br/>② Route53ホストゾーン作成(NS登録)<br/>③ ACM作成(CNAME検証)"]
-    F["2-6 ALB設定<br/>① SG/通信経路設計<br/>② SG作成(ALB/EC2/RDS)<br/>③ TG作成<br/>④ ALB作成(ACM紐づけ)<br/>⑤ Route53 Aレコード(ALBエイリアス)"]
-    G["2-7 RDS設定<br/>① サブネットグループ作成(05/06-private)<br/>② RDS MySQL作成<br/>③ EC2→RDS疎通(mariadb client)"]
-    H["2-8 Parameter Store / KMS による機密情報設定<br/>① SecureStringで保存<br/>② boto3(ssm)で復号取得→Django prod設定へ反映"]
-    I["2-9 CloudFront + S3 による静的コンテンツ配信設定<br/>① S3バケット作成<br/>② CloudFront作成→S3と紐づけ<br/>③ EC2→S3用IAM追加<br/>④ Django(prod)でSTATIC_URL等設定"]
-
-    J["2-10 本番環境設定<br/>① Git pull (git flow: develop→release)<br/>② docker-compose.prod準備<br/>③ Django(Dockerfile/prod settings)準備<br/>④ Nginx設定(静的はCloudFront運用想定)"]
-    K["2-11 デプロイ<br/>① docker compose -f docker-compose.prod up --build<br/>② ヘルスチェック/疎通確認(ALB/nginx)"]
-    L["2-12 CloudWatch/FlowLogs監視 + SNS/Lambda通知<br/>① 通知フロー設計<br/>② Mattermost Webhook<br/>③ SNSトピック<br/>④ Lambda作成(整形POST)<br/>⑤ Alarm→SNS紐づけ<br/>⑥ FlowLogs→CW Logs<br/>⑦ メトリクスフィルタ<br/>⑧ アラーム作成"]
-    M["2-13 EC2の複製<br/>① AMI作成<br/>② EC2複製(別AZ/別private subnet)<br/>③ TGへ追加<br/>④ docker compose起動/分散確認"]
-    N["2-14 Git push<br/>release→mainへ反映"]
-
-    A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K --> L --> M --> N
+    User->>CF: HTTPS リクエスト（Public）
+    CF->>ALB: HTTPS 転送（Public）
+    ALB->>EC2: HTTP/HTTPS（内部通信 / Private）
+    EC2->>RDS: SQL クエリ（Private Subnet）
+    RDS-->>EC2: クエリ結果返却
+    EC2-->>ALB: レスポンス返却（Private）
+    ALB-->>CF: HTTPS レスポンス（Public）
+    CF-->>User: HTTPS レスポンス（Public）
 ```
 
 **2) 補足説明**  
@@ -704,26 +698,11 @@ flowchart TB
 </details>
 
 <details>
-<summary>6. AWS環境構築、デプロイ</summary>
-
-<br>
+<summary>6. AWS環境構築、デプロイ</summary>  
 
 **1) 作業フロー**  
 以下にAWS環境構築、デプロイまでの作業フローを示す。  
 
-```mermaid
-flowchart TB
-    classDef left text-align:left;
-    A[1. ネットワーク設定<br/>①VPC作成<br/>②サブネット作成<br/>③IGW作成<br/>④NATGW作成<br/>⑤ルートテーブル作成<br/>⑥VPCエンドポイント作成]:::left --> 
-    B[2. セキュリティ、権限設定<br/>①SG作成<br/>②IAMロール作成]:::left
-    B --> C[3. EC2設定<br/>①EC2インスタンス作成<br/>②セッションマネージャーでのEC2接続<br/>③Git, Dockerのインストール]:::left
-    C --> D[4. ALB設定<br/>①SG、TG作成<br/>②ALB作成<br/>③Route53に関連付け]:::left
-    D --> E[5. RDS設定<br/>①RDS MySQL作成<br/>②EC2からRDSへの接続確認]:::left
-    E --> F[6. Git pull<br/>①リモートリポジトリからpull]:::left
-    F --> G[7. 本番環境設定（EC2内での作業）<br/>①Dockerの本番用設定<br/>②Djangoの本番用設定<br/>③Nginxの本番用設定<br/>④Docker compose起動（デプロイ）<br/>⑤ヘルスチェック、疎通確認]:::left
-    G --> H[8. EC2の複製<br/>①AMI作成<br/>②EC2インスタンス作成<br/>③SG, TG再設定<br/>④Docker compose起動]:::left
-    H --> I[9. Git push<br/>①リモートリポジトリへpush]:::left
-```
 
 **2) 各作業の詳細**  
 前述の作業フローにおける各作業の詳細を次のとおり示す。  
@@ -1801,6 +1780,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
