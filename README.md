@@ -1659,12 +1659,97 @@ MATTERMOST_WEBHOOK_URL = "https://chat.raretech.site/hooks/y9maqimxapdybrg65p3hu
 ```
 
 **③SNSトピックの作成**  
+SNSトピックの作成より、タイプ「標準」を選択し、トピックの名前は「kajimaru」とした。  
+
+**④SNSトピックにサブスクリプションを追加**  
 
 
 **④Lambda関数の作成**  
+Lambda関数を作成し、「Python3.13」（本番環境と同じバージョン）を選定する。  
+作成後に、環境変数に「MATTERMOST_WEBHOOK_URL = "https://chat.raretech.site/hooks/y9maqimxapdybrg65p3hu8ix7o"」を設定し、以下のコードを設定する。  
+その後にデプロイボタンを押して、設定を完了する。  
+以下のコードは、SNSメッセージからMattermostへ整形POSTするためのコードである。  
+SNSメッセージをLambdaを介さずに直接Mattermostへ送ると、送信形式の違いにより、エラーとなるため、Lambdaでメッセージを整形し、Mattermostへ送信する。  
+
+```
+import json
+import os
+import urllib.request
+
+def lambda_handler(event, context):
+    webhook_url = os.environ['MATTERMOST_WEBHOOK_URL']
+
+    # SNS メッセージを取得
+    sns_message = event['Records'][0]['Sns']['Message']
+    sns_subject = event['Records'][0]['Sns'].get('Subject', 'CloudWatch Alert')
+
+    # SNS の Message は JSON の場合もテキストの場合もあるのでハンドリング
+    try:
+        message_dict = json.loads(sns_message)
+        alarm_name = message_dict.get('AlarmName', sns_subject)
+        new_state = message_dict.get('NewStateValue', '')
+        reason = message_dict.get('NewStateReason', '')
+        description = message_dict.get('AlarmDescription', '')
+    except json.JSONDecodeError:
+        alarm_name = sns_subject
+        new_state = ''
+        reason = sns_message
+        description = ''
+
+    # Mattermost に送るメッセージ形式
+    mattermost_payload = {
+        "text": f"""
+**CloudWatch Alarm Notification**
+
+- **Alarm**: {alarm_name}
+- **State**: {new_state}
+- **Reason**: {reason}
+- **Description**: {description}
+"""
+    }
+
+    # POST実行
+    data = json.dumps(mattermost_payload).encode("utf-8")
+    req = urllib.request.Request(
+        webhook_url,
+        data=data,
+        headers={"Content-Type": "application/json"}
+    )
+
+    try:
+        with urllib.request.urlopen(req) as res:
+            print("Notification sent:", res.read().decode())
+    except Exception as e:
+        print("Error:", e)
+
+    return {"status": "done"}
+
+```
+
 
 
 **⑤CloudWatchアラームとSNSの紐づけ**  
+
+
+**⑥VPC Flowlogsの作成**  
+CloudWatch logsのLog ManagementにてVPC Flowlogsの出力先である「ロググループ」を作成する。  
+ロググループ名は「/vpc/flowlogs/main-vpc」とした。  
+
+次にVPC Flowlogsを作成する。  
+VPCからkajimaruのVPCを選択し、フローログを作成する。  
+フローログの出力先は、「CloudWatch logs」として、先ほど作成したロググループを選択する。  
+
+VPC FlowlogsがCloudWatch logsに書き込むためのIAMロールを作成する。  
+「新しいサービスロールを作成して使用」を選択し、自動的にIAMロールが作成される。  
+
+ログレコードは「AWS のデフォルト形式」を選択し、デフォルトの14のフィールドを出力することとした。  
+```
+${version} ${account-id} ${interface-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${packets} ${bytes} ${start} ${end} ${action} ${log-status}
+```
+
+**⑦メトリクスフィルタの設定**  
+FlowLogsから検知条件を作り、「Flow Logs → CloudWatch Logs → メトリクスフィルタ → 異常を数値化 → アラーム通知」を実装する。  
+
 
 
 **2-11) EC2の複製**  
@@ -1692,6 +1777,7 @@ git flowに準じ、releaseブランチからmainブランチへpushする。
 
 
 -以上-
+
 
 
 
